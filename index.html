@@ -71,6 +71,7 @@
         let platforms;
         let cursors;
         let lasers;
+        let finish;
 
         let startX = 200;
         let startY = 500;
@@ -147,6 +148,24 @@
 
             laserGraphics.destroy();
 
+            // Текстура финиша
+            const finishGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            finishGraphics.fillStyle(0x00ff66);
+            finishGraphics.fillRect(0, 0, 50, 100);
+
+            finishGraphics.generateTexture(
+                'finish',
+                50,
+                100
+            );
+
+            finishGraphics.destroy();
+
 
             // =====================================================
             // ПЛАТФОРМЫ
@@ -155,6 +174,8 @@
             platforms = this.physics.add.staticGroup();
 
             lasers = this.physics.add.staticGroup();
+
+            finish = this.physics.add.staticGroup();
 
 
             // Земля
@@ -187,6 +208,13 @@
                 'laser'
             );
 
+            // Финиш
+            finish.create(
+                1100,
+                570,
+                'finish'
+            );
+
 
             // =====================================================
             // ИГРОК
@@ -216,6 +244,14 @@
                 player,
                 lasers,
                 hitLaser,
+                null,
+                this
+            );
+
+            this.physics.add.overlap(
+                player,
+                finish,
+                reachFinish,
                 null,
                 this
             );
@@ -266,6 +302,27 @@
                 0,
                 0
             );
+        }
+
+        function reachFinish() {
+
+            player.setVelocity(
+                0,
+                0
+            );
+
+            player.body.moves = false;
+
+            this.add.text(
+                640,
+                300,
+                'ПОБЕДА!',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '64px',
+                    color: '#00ff66'
+                }
+            ).setOrigin(0.5);
         }
     </script>
 
