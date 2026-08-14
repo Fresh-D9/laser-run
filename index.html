@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LASER RUN</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #111111;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Подключаем Phaser -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+
+    <script>
+        // Здесь будет находиться наша игра
+        const config = {
+            type: Phaser.AUTO,
+
+            width: 1280,
+            height: 720,
+
+            backgroundColor: '#181818',
+
+            physics: {
+                default: 'arcade',
+
+                arcade: {
+                    gravity: {
+                        y: 1000
+                    },
+                    debug: true
+                }
+            },
+
+            scene: {
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        let player;
+        let platforms;
+        let cursors;
+        let lasers;
+
+        let startX = 200;
+        let startY = 500;
+
+        function create() {
+
+            // Заголовок
+            this.add.text(
+                640,
+                50,
+                'LASER RUN',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '48px',
+                    color: '#ffffff'
+                }
+            ).setOrigin(0.5);
+
+
+            // =====================================================
+            // СОЗДАЁМ ПРОСТЫЕ ТЕКСТУРЫ ДЛЯ ПРОТОТИПА
+            // =====================================================
+
+            // Текстура игрока
+            const playerGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            playerGraphics.fillStyle(0xff3333);
+            playerGraphics.fillRect(0, 0, 40, 60);
+            playerGraphics.generateTexture(
+                'player',
+                40,
+                60
+            );
+
+            playerGraphics.destroy();
+
+
+            // Текстура платформы
+            const platformGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            platformGraphics.fillStyle(0x555555);
+            platformGraphics.fillRect(0, 0, 250, 30);
+            platformGraphics.generateTexture(
+                'platform',
+                250,
+                30
+            );
+
+            platformGraphics.destroy();
+
+            // Текстура лазера
+            const laserGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            laserGraphics.fillStyle(0xff0000);
+            laserGraphics.fillRect(0, 0, 220, 12);
+
+            laserGraphics.generateTexture(
+                'laser',
+                220,
+                12
+            );
+
+            laserGraphics.destroy();
+
+
+            // =====================================================
+            // ПЛАТФОРМЫ
+            // =====================================================
+
+            platforms = this.physics.add.staticGroup();
+
+            lasers = this.physics.add.staticGroup();
+
+
+            // Земля
+            platforms.create(
+                640,
+                650,
+                'platform'
+            );
+
+
+            // Средняя платформа
+            platforms.create(
+                400,
+                500,
+                'platform'
+            );
+
+
+            // Верхняя платформа
+            platforms.create(
+                800,
+                400,
+                'platform'
+            );
+
+            // Первый лазер
+            lasers.create(
+                850,
+                570,
+                'laser'
+            );
+
+
+            // =====================================================
+            // ИГРОК
+            // =====================================================
+
+            player = this.physics.add.sprite(
+                200,
+                500,
+                'player'
+            );
+
+
+            // Не даём игроку выйти за пределы экрана
+            player.setCollideWorldBounds(true);
+
+
+            // =====================================================
+            // СТОЛКНОВЕНИЕ С ПЛАТФОРМАМИ
+            // =====================================================
+
+            this.physics.add.collider(
+                player,
+                platforms
+            );
+
+            this.physics.add.collider(
+                player,
+                lasers,
+                hitLaser,
+                null,
+                this
+            );
+
+
+            // =====================================================
+            // УПРАВЛЕНИЕ
+            // =====================================================
+
+            cursors = this.input.keyboard.createCursorKeys();
+        }
+
+        function update() {
+
+            if (cursors.left.isDown) {
+
+                player.setVelocityX(-300);
+
+            } else if (cursors.right.isDown) {
+
+                player.setVelocityX(300);
+
+            } else {
+
+                player.setVelocityX(0);
+            }
+
+
+            // Прыжок
+            if (
+                cursors.up.isDown &&
+                player.body.blocked.down
+            ) {
+
+                player.setVelocityY(-600);
+
+            }
+        }
+
+        function hitLaser() {
+
+            player.setPosition(
+                startX,
+                startY
+            );
+
+            player.setVelocity(
+                0,
+                0
+            );
+        }
+    </script>
+
+</body>
+</html>
