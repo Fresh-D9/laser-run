@@ -81,6 +81,11 @@
         let enemy;
         let enemyDirection = 1;
 
+        let battery;
+        let laserEnergy = 0;
+        let energyText;
+        let laserEnergyDrain = 30;
+
         let startX = 200;
         let startY = 500;
 
@@ -97,6 +102,17 @@
                     color: '#ffffff'
                 }
             ).setOrigin(0.5);
+
+            energyText = this.add.text(
+                30,
+                30,
+                'LASER ENERGY: 0',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '24px',
+                    color: '#ffff00'
+                }
+            );
 
 
             // =====================================================
@@ -192,6 +208,27 @@
 
             enemyGraphics.destroy();
 
+            // Текстура аккумулятора
+            const batteryGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            batteryGraphics.fillStyle(0xffff00);
+            batteryGraphics.fillRect(0, 0, 30, 45);
+
+            batteryGraphics.fillStyle(0x333333);
+            batteryGraphics.fillRect(8, 0, 14, 7);
+
+            batteryGraphics.generateTexture(
+                'battery',
+                30,
+                45
+            );
+
+            batteryGraphics.destroy();
+
 
             // =====================================================
             // ПЛАТФОРМЫ
@@ -271,6 +308,18 @@
             enemy.setImmovable(true);
             enemy.body.allowGravity = false;
 
+            // =====================================================
+            // АККУМУЛЯТОР
+            // =====================================================
+
+            battery = this.physics.add.sprite(
+                650,
+                612,
+                'battery'
+            );
+
+            battery.body.allowGravity = false;
+
 
             // =====================================================
             // СТОЛКНОВЕНИЕ С ПЛАТФОРМАМИ
@@ -301,6 +350,14 @@
                 player,
                 finish,
                 reachFinish,
+                null,
+                this
+            );
+
+            this.physics.add.overlap(
+                player,
+                battery,
+                collectBattery,
                 null,
                 this
             );
@@ -370,7 +427,10 @@
 
             playerLaser.clear();
 
-            if (spaceKey.isDown) {
+            if (
+                spaceKey.isDown &&
+                laserEnergy > 0
+            ) {
 
                 playerLaser.lineStyle(
                     6,
@@ -399,6 +459,22 @@
                 );
 
                 playerLaser.strokePath();
+
+
+                // Расход энергии
+
+                laserEnergy -=
+                    laserEnergyDrain *
+                    (this.game.loop.delta / 1000);
+
+                if (laserEnergy < 0) {
+                    laserEnergy = 0;
+                }
+
+                energyText.setText(
+                    'LASER ENERGY: ' +
+                    Math.ceil(laserEnergy)
+                );
             }
 
             // Проверяем попадание лазера во врага
@@ -406,7 +482,8 @@
             if (
                 enemy &&
                 enemy.active &&
-                spaceKey.isDown
+                spaceKey.isDown &&
+                laserEnergy > 0
             ) {
 
                 const laserStartX = player.x;
@@ -538,6 +615,49 @@
             enemy.setVelocityX(0);
 
             enemyDirection = 1;
+
+            // Восстанавливаем аккумулятор
+
+            if (!battery || !battery.active) {
+
+                battery = this.physics.add.sprite(
+                    650,
+                    612,
+                    'battery'
+                );
+
+                battery.body.allowGravity = false;
+
+                this.physics.add.overlap(
+                    player,
+                    battery,
+                    collectBattery,
+                    null,
+                    this
+                );
+            }
+
+            battery.setPosition(
+                650,
+                612
+            );
+
+            laserEnergy = 0;
+
+            energyText.setText(
+                'LASER ENERGY: ' + laserEnergy
+            );
+        }
+
+        function collectBattery() {
+
+            laserEnergy += 100;
+
+            battery.destroy();
+
+            energyText.setText(
+                'LASER ENERGY: ' + laserEnergy
+            );
         }
 
     </script>
