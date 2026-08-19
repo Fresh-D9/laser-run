@@ -46,6 +46,11 @@
             width: 1280,
             height: 720,
 
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+
             backgroundColor: '#181818',
 
             physics: {
@@ -91,6 +96,13 @@
 
         function create() {
 
+            this.physics.world.setBounds(
+                0,
+                0,
+                5000,
+                720
+            );
+            
             // Заголовок
             this.add.text(
                 640,
@@ -113,6 +125,8 @@
                     color: '#ffff00'
                 }
             );
+
+            energyText.setScrollFactor(0);
 
 
             // =====================================================
@@ -264,6 +278,25 @@
                 'platform'
             );
 
+            // Ещё платформы
+            platforms.create(
+                1500,
+                500,
+                'platform'
+            );
+
+            platforms.create(
+                2200,
+                400,
+                'platform'
+            );
+
+            platforms.create(
+                3000,
+                550,
+                'platform'
+            );
+
             // Первый лазер
             lasers.create(
                 850,
@@ -294,6 +327,20 @@
             player.setCollideWorldBounds(true);
 
             playerLaser = this.add.graphics();
+
+            this.cameras.main.setBounds(
+                0,
+                0,
+                5000,
+                720
+            );
+
+            this.cameras.main.startFollow(
+                player,
+                true,
+                0.08,
+                0.08
+            );
 
             // =====================================================
             // ВРАГ
@@ -441,10 +488,12 @@
                 const startX = player.x;
                 const startY = player.y;
 
+                const camera = this.cameras.main;
+
                 const endX =
                     lastDirection === 1
-                        ? 1280
-                        : 0;
+                        ? camera.scrollX + camera.width
+                        : camera.scrollX;
 
                 playerLaser.beginPath();
 
@@ -488,10 +537,12 @@
 
                 const laserStartX = player.x;
 
+                const camera = this.cameras.main;
+
                 const laserEndX =
                     lastDirection === 1
-                        ? 1280
-                        : 0;
+                        ? camera.scrollX + camera.width
+                        : camera.scrollX;
 
                 const enemyIsInLaserX =
                     enemy.x >= Math.min(
