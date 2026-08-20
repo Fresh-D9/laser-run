@@ -89,13 +89,36 @@
         let battery;
         let laserEnergy = 0;
         let energyText;
+        let switchText;
         let laserEnergyDrain = 30;
+
+        let laserSwitch;
+        let switchActivated = false;
+        let switchProgress = 0;
+
+        let door;
 
         let startX = 200;
         let startY = 500;
 
         function create() {
 
+            // =====================================================
+            // СБРОС СОСТОЯНИЯ УРОВНЯ
+            // =====================================================
+
+            laserEnergy = 0;
+
+            switchProgress = 0;
+
+            switchActivated = false;
+
+            enemyDirection = 1;
+
+            lastDirection = 1;
+
+            winText = null;
+            
             this.physics.world.setBounds(
                 0,
                 0,
@@ -127,6 +150,19 @@
             );
 
             energyText.setScrollFactor(0);
+
+            switchText = this.add.text(
+                30,
+                65,
+                '',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '20px',
+                    color: '#ffffff'
+                }
+            );
+
+            switchText.setScrollFactor(0);
 
 
             // =====================================================
@@ -243,6 +279,56 @@
 
             batteryGraphics.destroy();
 
+            // Текстура лазерного переключателя
+
+            const switchGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            switchGraphics.fillStyle(0x666666);
+            switchGraphics.fillRect(0, 0, 50, 50);
+
+            switchGraphics.fillStyle(0xff0000);
+            switchGraphics.fillCircle(
+                25,
+                25,
+                12
+            );
+
+            switchGraphics.generateTexture(
+                'laserSwitch',
+                50,
+                50
+            );
+
+            switchGraphics.destroy();
+
+            // =====================================================
+            // ТЕКСТУРА ДВЕРИ
+            // =====================================================
+
+            const doorGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            doorGraphics.fillStyle(0x333333);
+            doorGraphics.fillRect(0, 0, 80, 180);
+
+            doorGraphics.fillStyle(0x777777);
+            doorGraphics.fillRect(10, 10, 60, 160);
+
+            doorGraphics.generateTexture(
+                'door',
+                80,
+                180
+            );
+
+            doorGraphics.destroy();
+
 
             // =====================================================
             // ПЛАТФОРМЫ
@@ -255,26 +341,50 @@
             finish = this.physics.add.staticGroup();
 
 
-            // Земля
-            platforms.create(
-                640,
-                650,
-                'platform'
-            );
+            // =====================================================
+            // ЗЕМЛЯ
+            // =====================================================
+
+            platforms.create(125, 650, 'platform');
+            platforms.create(375, 650, 'platform');
 
 
-            // Средняя платформа
+            // Первый разрыв
+
+
+            platforms.create(750, 650, 'platform');
+            platforms.create(1000, 650, 'platform');
+
+            platforms.create(1250, 650, 'platform');
+            platforms.create(1500, 650, 'platform');
+            platforms.create(1750, 650, 'platform');
+
+
+            // =====================================================
+            // ПЛАТФОРМЫ УРОВНЯ
+            // =====================================================
+
             platforms.create(
-                400,
+                450,
                 500,
                 'platform'
             );
 
-
-            // Верхняя платформа
             platforms.create(
                 800,
-                400,
+                420,
+                'platform'
+            );
+
+            platforms.create(
+                1150,
+                500,
+                'platform'
+            );
+
+            platforms.create(
+                1450,
+                420,
                 'platform'
             );
 
@@ -306,7 +416,7 @@
 
             // Финиш
             finish.create(
-                1100,
+                1650,
                 570,
                 'finish'
             );
@@ -322,9 +432,26 @@
                 'player'
             );
 
+            // Переключатель
+            laserSwitch = this.physics.add.staticImage(
+                1350,
+                450,
+                'laserSwitch'
+            );
+
+            // =====================================================
+            // ДВЕРЬ
+            // =====================================================
+
+            door = this.physics.add.staticImage(
+                1550,
+                520,
+                'door'
+            );
+
 
             // Не даём игроку выйти за пределы экрана
-            player.setCollideWorldBounds(true);
+            player.setCollideWorldBounds(false);
 
             playerLaser = this.add.graphics();
 
@@ -375,6 +502,11 @@
             this.physics.add.collider(
                 player,
                 platforms
+            );
+
+            this.physics.add.collider(
+                player,
+                door
             );
 
             this.physics.add.collider(
@@ -441,7 +573,7 @@
                     enemyDirection = -1;
                 }
 
-                if (enemy.x <= 250) {
+                if (enemy.x <= 350) {
                     enemyDirection = 1;
                 }
             }
@@ -566,32 +698,105 @@
                     enemy.destroy();
                 }
             }
+
+            // Проверка попадания лазера в переключатель
+            if (
+                laserSwitch &&
+                laserSwitch.active &&
+                spaceKey.isDown &&
+                laserEnergy > 0
+            ) {
+
+                const laserStartX = player.x;
+
+                const laserEndX =
+                    lastDirection === 1
+                        ? this.cameras.main.scrollX +
+                        this.cameras.main.width
+                        : this.cameras.main.scrollX;
+
+                const switchX = laserSwitch.x;
+
+                const laserHitsSwitch =
+                    lastDirection === 1
+                        ? switchX >= laserStartX &&
+                        switchX <= laserEndX
+                        : switchX <= laserStartX &&
+                        switchX >= laserEndX;
+
+                if (laserHitsSwitch) {
+
+                    switchProgress = Math.min(
+                        2,
+                        switchProgress +
+                        this.game.loop.delta / 1000
+                    );
+
+                    switchText.setText(
+                        'MECHANISM: ' +
+                        Math.floor(
+                            switchProgress * 50
+                        ) +
+                        '%'
+                    );
+
+                    if (switchProgress >= 2) {
+
+                        switchActivated = true;
+
+                        laserSwitch.setTint(
+                            0x00ff00
+                        );
+
+                        door.disableBody(
+                            true,
+                            true
+                        );
+                    }
+
+                    switchText.setText(
+                        'MECHANISM: ' +
+                        Math.floor(
+                            switchProgress * 50
+                        ) +
+                        '%'
+                    );
+                }
+            }
+
+            // Не даём игроку выйти за пределы уровня по горизонтали
+
+            if (player.x < 20) {
+                player.x = 20;
+                player.setVelocityX(0);
+            }
+
+            if (player.x > 4980) {
+                player.x = 4980;
+                player.setVelocityX(0);
+            }
+
+            // =====================================================
+            // ПАДЕНИЕ В ПРОПАСТЬ
+            // =====================================================
+
+            if (player.y > 750) {
+
+                restartGame.call(this);
+
+            }
         }
 
         function hitLaser() {
 
-            player.setPosition(
-                startX,
-                startY
-            );
+            restartGame.call(this);
 
-            player.setVelocity(
-                0,
-                0
-            );
         }
 
         function hitEnemy() {
 
-            player.setPosition(
-                startX,
-                startY
-            );
+            restartGame.call(this);
 
-            player.setVelocity(
-                0,
-                0
-            );
         }
 
         function reachFinish() {
@@ -614,90 +819,14 @@
                     align: 'center'
                 }
             ).setOrigin(0.5);
+
+            winText.setScrollFactor(0);
         }
 
         function restartGame() {
 
-            if (winText) {
-                winText.destroy();
-                winText = null;
-            }
+            this.scene.restart();
 
-            player.setPosition(
-                startX,
-                startY
-            );
-
-            player.setVelocity(
-                0,
-                0
-            );
-
-            player.body.moves = true;
-
-
-            // Восстанавливаем врага
-
-            if (!enemy || !enemy.active) {
-
-                enemy = this.physics.add.sprite(
-                    400,
-                    465,
-                    'enemy'
-                );
-
-                enemy.setImmovable(true);
-                enemy.body.allowGravity = false;
-
-                this.physics.add.collider(
-                    player,
-                    enemy,
-                    hitEnemy,
-                    null,
-                    this
-                );
-            }
-
-            enemy.setPosition(
-                400,
-                465
-            );
-
-            enemy.setVelocityX(0);
-
-            enemyDirection = 1;
-
-            // Восстанавливаем аккумулятор
-
-            if (!battery || !battery.active) {
-
-                battery = this.physics.add.sprite(
-                    650,
-                    612,
-                    'battery'
-                );
-
-                battery.body.allowGravity = false;
-
-                this.physics.add.overlap(
-                    player,
-                    battery,
-                    collectBattery,
-                    null,
-                    this
-                );
-            }
-
-            battery.setPosition(
-                650,
-                612
-            );
-
-            laserEnergy = 0;
-
-            energyText.setText(
-                'LASER ENERGY: ' + laserEnergy
-            );
         }
 
         function collectBattery() {
