@@ -103,6 +103,8 @@
 
         let livesText;
 
+        let extraLives;
+
         let startX = 200;
         let startY = 500;
 
@@ -352,6 +354,47 @@
 
             doorGraphics.destroy();
 
+            // =====================================================
+            // ТЕКСТУРА ДОПОЛНИТЕЛЬНОЙ ЖИЗНИ
+            // =====================================================
+
+            const lifeGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            lifeGraphics.fillStyle(0xff3333);
+
+            lifeGraphics.fillCircle(
+                15,
+                12,
+                10
+            );
+
+            lifeGraphics.fillCircle(
+                30,
+                12,
+                10
+            );
+
+            lifeGraphics.fillTriangle(
+                5,
+                15,
+                40,
+                15,
+                22,
+                38
+            );
+
+            lifeGraphics.generateTexture(
+                'extraLife',
+                45,
+                40
+            );
+
+            lifeGraphics.destroy();
+
 
             // =====================================================
             // ПЛАТФОРМЫ
@@ -360,6 +403,8 @@
             platforms = this.physics.add.staticGroup();
 
             lasers = this.physics.add.staticGroup();
+
+            extraLives = this.physics.add.staticGroup();
 
             finish = this.physics.add.staticGroup();
 
@@ -472,6 +517,13 @@
                 'door'
             );
 
+            // Дополнительная жизнь
+            extraLives.create(
+                1000,
+                600,
+                'extraLife'
+            );
+
 
             // Не даём игроку выйти за пределы экрана
             player.setCollideWorldBounds(false);
@@ -560,6 +612,14 @@
                 player,
                 battery,
                 collectBattery,
+                null,
+                this
+            );
+
+            this.physics.add.overlap(
+                player,
+                extraLives,
+                collectExtraLife,
                 null,
                 this
             );
@@ -898,6 +958,21 @@
                 0,
                 0
             );
+        }
+
+        function collectExtraLife(player, life) {
+
+            if (lives < maxLives) {
+
+                lives++;
+
+                updateLivesText();
+
+                life.disableBody(
+                    true,
+                    true
+                );
+            }
         }
 
     </script>
