@@ -98,6 +98,11 @@
 
         let door;
 
+        let lives = 3;
+        let maxLives = 5;
+
+        let livesText;
+
         let startX = 200;
         let startY = 500;
 
@@ -116,6 +121,8 @@
             enemyDirection = 1;
 
             lastDirection = 1;
+
+            lives = 3;
 
             winText = null;
             
@@ -150,6 +157,22 @@
             );
 
             energyText.setScrollFactor(0);
+
+            // Отображение жизней
+            livesText = this.add.text(
+                30,
+                95,
+                'LIVES: ❤️❤️❤️',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '22px',
+                    color: '#ffffff'
+                }
+            );
+
+            livesText.setScrollFactor(0);
+
+            updateLivesText();
 
             switchText = this.add.text(
                 30,
@@ -782,20 +805,20 @@
 
             if (player.y > 750) {
 
-                restartGame.call(this);
+                playerDeath.call(this);
 
             }
         }
 
         function hitLaser() {
 
-            restartGame.call(this);
+            playerDeath.call(this);
 
         }
 
         function hitEnemy() {
 
-            restartGame.call(this);
+            playerDeath.call(this);
 
         }
 
@@ -837,6 +860,43 @@
 
             energyText.setText(
                 'LASER ENERGY: ' + laserEnergy
+            );
+        }
+
+        function updateLivesText() {
+
+            let hearts = '';
+
+            for (let i = 0; i < lives; i++) {
+                hearts += '❤️';
+            }
+
+            livesText.setText(
+                'LIVES: ' + hearts
+            );
+        }
+
+        function playerDeath() {
+
+            lives--;
+
+            updateLivesText();
+
+            if (lives <= 0) {
+
+                restartGame.call(this);
+
+                return;
+            }
+
+            player.setPosition(
+                startX,
+                startY
+            );
+
+            player.setVelocity(
+                0,
+                0
             );
         }
 
