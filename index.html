@@ -800,12 +800,21 @@
 
                 const switchX = laserSwitch.x;
 
+                const switchBounds =
+                    laserSwitch.getBounds();
+
+                const laserY = player.y;
+
                 const laserHitsSwitch =
-                    lastDirection === 1
-                        ? switchX >= laserStartX &&
-                        switchX <= laserEndX
-                        : switchX <= laserStartX &&
-                        switchX >= laserEndX;
+                    laserY >= switchBounds.top &&
+                    laserY <= switchBounds.bottom &&
+                    (
+                        lastDirection === 1
+                            ? switchBounds.left >= laserStartX &&
+                            switchBounds.left <= laserEndX
+                            : switchBounds.right <= laserStartX &&
+                            switchBounds.right >= laserEndX
+                    );
 
                 if (laserHitsSwitch) {
 
