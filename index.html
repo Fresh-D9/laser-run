@@ -41,15 +41,11 @@
     <script>
         // Здесь будет находиться наша игра
         const config = {
+
             type: Phaser.AUTO,
 
             width: 1280,
             height: 720,
-
-            scale: {
-                mode: Phaser.Scale.FIT,
-                autoCenter: Phaser.Scale.CENTER_BOTH
-            },
 
             backgroundColor: '#181818',
 
@@ -60,14 +56,24 @@
                     gravity: {
                         y: 1000
                     },
+
                     debug: true
                 }
             },
 
-            scene: {
-                create: create,
-                update: update
-            }
+            scene: [
+                {
+                    key: 'Level1',
+                    create: create,
+                    update: update
+                },
+
+                {
+                    key: 'Level2',
+                    create: createLevel2,
+                    update: updateLevel2
+                }
+            ]
         };
 
         const game = new Phaser.Game(config);
@@ -267,12 +273,12 @@
             });
 
             finishGraphics.fillStyle(0x00ff66);
-            finishGraphics.fillRect(0, 0, 50, 100);
+            finishGraphics.fillRect(0, 0, 80, 120);
 
             finishGraphics.generateTexture(
                 'finish',
-                50,
-                100
+                80,
+                120
             );
 
             finishGraphics.destroy();
@@ -958,26 +964,8 @@
 
         function reachFinish() {
 
-            player.setVelocity(
-                0,
-                0
-            );
+            this.scene.start('Level2');
 
-            player.body.moves = false;
-
-            winText = this.add.text(
-                640,
-                300,
-                'ПОБЕДА!\n\nНажмите ENTER для повторной игры',
-                {
-                    fontFamily: 'Arial',
-                    fontSize: '40px',
-                    color: '#00ff66',
-                    align: 'center'
-                }
-            ).setOrigin(0.5);
-
-            winText.setScrollFactor(0);
         }
 
         function restartGame() {
@@ -1064,6 +1052,41 @@
             checkpoint.setTint(
                 0x00ff00
             );
+        }
+
+        // =====================================================
+        // LEVEL 2
+        // =====================================================
+
+        function createLevel2() {
+
+            this.add.text(
+                640,
+                200,
+                'LEVEL 2',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '64px',
+                    color: '#ffffff'
+                }
+            ).setOrigin(0.5);
+
+
+            this.add.text(
+                640,
+                300,
+                'Новый уровень',
+                {
+                    fontFamily: 'Arial',
+                    fontSize: '28px',
+                    color: '#aaaaaa'
+                }
+            ).setOrigin(0.5);
+        }
+
+
+        function updateLevel2() {
+
         }
 
     </script>
