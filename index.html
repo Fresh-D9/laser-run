@@ -105,6 +105,13 @@
 
         let extraLives;
 
+        let checkpoints;
+
+        let checkpointX;
+        let checkpointY;
+
+        let checkpointActivated = false;
+
         let startX = 200;
         let startY = 500;
 
@@ -125,6 +132,11 @@
             lastDirection = 1;
 
             lives = 3;
+
+            checkpointX = startX;
+            checkpointY = startY;
+
+            checkpointActivated = false;
 
             winText = null;
             
@@ -395,6 +407,42 @@
 
             lifeGraphics.destroy();
 
+            // =====================================================
+            // ТЕКСТУРА CHECKPOINT
+            // =====================================================
+
+            const checkpointGraphics = this.make.graphics({
+                x: 0,
+                y: 0,
+                add: false
+            });
+
+            checkpointGraphics.fillStyle(0x666666);
+            checkpointGraphics.fillRect(
+                18,
+                0,
+                6,
+                70
+            );
+
+            checkpointGraphics.fillStyle(0xffcc00);
+            checkpointGraphics.fillTriangle(
+                24,
+                5,
+                65,
+                20,
+                24,
+                35
+            );
+
+            checkpointGraphics.generateTexture(
+                'checkpoint',
+                70,
+                70
+            );
+
+            checkpointGraphics.destroy();
+
 
             // =====================================================
             // ПЛАТФОРМЫ
@@ -405,6 +453,8 @@
             lasers = this.physics.add.staticGroup();
 
             extraLives = this.physics.add.staticGroup();
+
+            checkpoints = this.physics.add.staticGroup();
 
             finish = this.physics.add.staticGroup();
 
@@ -487,6 +537,13 @@
                 1650,
                 570,
                 'finish'
+            );
+
+            // Чекпоинт
+            checkpoints.create(
+                1200,
+                580,
+                'checkpoint'
             );
 
 
@@ -620,6 +677,14 @@
                 player,
                 extraLives,
                 collectExtraLife,
+                null,
+                this
+            );
+
+            this.physics.add.overlap(
+                player,
+                checkpoints,
+                activateCheckpoint,
                 null,
                 this
             );
@@ -959,8 +1024,13 @@
             }
 
             player.setPosition(
-                startX,
-                startY
+                checkpointX,
+                checkpointY
+            );
+
+            this.cameras.main.centerOn(
+                checkpointX,
+                checkpointY
             );
 
             player.setVelocity(
@@ -982,6 +1052,18 @@
                     true
                 );
             }
+        }
+
+        function activateCheckpoint(player, checkpoint) {
+
+            checkpointX = checkpoint.x;
+            checkpointY = checkpoint.y;
+
+            checkpointActivated = true;
+
+            checkpoint.setTint(
+                0x00ff00
+            );
         }
 
     </script>
