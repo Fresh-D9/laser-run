@@ -605,11 +605,9 @@
             );
 
             // Чекпоинт
-            checkpoints.create(
-                1200,
-                580,
-                'checkpoint'
-            );
+            levelData.checkpoints.forEach(([x, y]) => {
+                checkpoints.create(x, y, 'checkpoint');
+            });
 
 
             // =====================================================
@@ -623,28 +621,21 @@
             );
 
             // Переключатель
-            laserSwitch = this.physics.add.staticImage(
-                1350,
-                450,
-                'laserSwitch'
-            );
+            levelData.laserSwitch.forEach(([x, y]) => {
+                laserSwitch = this.physics.add.staticImage(x, y, 'laserSwitch');
+            });
 
             // =====================================================
             // ДВЕРЬ
             // =====================================================
-
-            door = this.physics.add.staticImage(
-                1550,
-                520,
-                'door'
-            );
+            levelData.door.forEach(([x, y]) => {
+                door = this.physics.add.staticImage(x, y, 'door');
+            });
 
             // Дополнительная жизнь
-            extraLives.create(
-                1000,
-                600,
-                'extraLife'
-            );
+            levelData.extraLives.forEach(([x, y]) => {
+                extraLives.create(x, y, 'extraLife');
+            });
 
 
             // Не даём игроку выйти за пределы экрана
@@ -670,14 +661,11 @@
             // ВРАГ
             // =====================================================
 
-            enemy = this.physics.add.sprite(
-                400,
-                465,
-                'enemy'
-            );
-
-            enemy.setImmovable(true);
-            enemy.body.allowGravity = false;
+            levelData.enemies.forEach(([x, y]) => {
+                enemy = this.physics.add.sprite(x, y, 'enemy');
+                enemy.setImmovable(true);
+                enemy.body.allowGravity = false;
+            });
 
             // =====================================================
             // АККУМУЛЯТОР
