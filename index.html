@@ -78,6 +78,117 @@
 
         const game = new Phaser.Game(config);
 
+        // =====================================================
+        // ДАННЫЕ УРОВНЕЙ
+        // =====================================================
+
+        const LEVELS = {
+
+            1: {
+
+                width: 5000,
+
+                player: {
+                    x: 200,
+                    y: 500
+                },
+
+                platforms: [
+
+                    // Земля
+                    [125, 650],
+                    [375, 650],
+
+                    // Первый разрыв
+                    [750, 650],
+                    [1000, 650],
+
+                    [1250, 650],
+                    [1500, 650],
+                    [1750, 650],
+
+                    // Платформы уровня
+                    [450, 500],
+                    [800, 420],
+                    [1150, 500],
+                    [1450, 420],
+                    [1500, 500],
+
+                    // Дальнейшая часть уровня
+                    [2200, 400],
+                    [3000, 550]
+                ],
+
+                lasers: [
+                    [850, 570]
+                ],
+
+                enemies: [
+                    [400, 465]
+                ],
+
+                batteries: [
+                    [650, 612]
+                ],
+
+                extraLives: [
+                    [1000, 600]
+                ],
+
+                checkpoints: [
+                    [1200, 580]
+                ],
+
+                laserSwitch: [
+                    [1350, 450]
+                ],
+
+                door: [
+                    [1550, 520]
+                ],
+
+                finish: [
+                    [1650, 570]
+                ]
+            },
+
+
+            // =================================================
+            // LEVEL 2
+            // =================================================
+
+            2: {
+
+                width: 5000,
+
+                player: {
+                    x: 200,
+                    y: 500
+                },
+
+                platforms: [
+                    // Пока пусто.
+                    // Позже сюда добавим платформы Level 2.
+                ],
+
+                lasers: [],
+
+                enemies: [],
+
+                batteries: [],
+
+                extraLives: [],
+
+                checkpoints: [],
+
+                laserSwitch: [],
+
+                door: [],
+
+                finish: []
+            }
+        };
+
         let player;
         let platforms;
         let cursors;
@@ -123,6 +234,8 @@
 
         function create() {
 
+            const levelData = LEVELS[1];
+            
             // =====================================================
             // СБРОС СОСТОЯНИЯ УРОВНЯ
             // =====================================================
@@ -466,77 +579,23 @@
 
 
             // =====================================================
-            // ЗЕМЛЯ
-            // =====================================================
-
-            platforms.create(125, 650, 'platform');
-            platforms.create(375, 650, 'platform');
-
-
-            // Первый разрыв
-
-
-            platforms.create(750, 650, 'platform');
-            platforms.create(1000, 650, 'platform');
-
-            platforms.create(1250, 650, 'platform');
-            platforms.create(1500, 650, 'platform');
-            platforms.create(1750, 650, 'platform');
-
-
-            // =====================================================
             // ПЛАТФОРМЫ УРОВНЯ
             // =====================================================
 
-            platforms.create(
-                450,
-                500,
-                'platform'
-            );
+            levelData.platforms.forEach(([x, y]) => {
 
-            platforms.create(
-                800,
-                420,
-                'platform'
-            );
+                platforms.create(
+                    x,
+                    y,
+                    'platform'
+                );
 
-            platforms.create(
-                1150,
-                500,
-                'platform'
-            );
+            });
 
-            platforms.create(
-                1450,
-                420,
-                'platform'
-            );
-
-            // Ещё платформы
-            platforms.create(
-                1500,
-                500,
-                'platform'
-            );
-
-            platforms.create(
-                2200,
-                400,
-                'platform'
-            );
-
-            platforms.create(
-                3000,
-                550,
-                'platform'
-            );
-
-            // Первый лазер
-            lasers.create(
-                850,
-                570,
-                'laser'
-            );
+            // СОЗДАНИЕ ЛАЗЕРА-ЛОВУШКИ
+            levelData.lasers.forEach(([x, y]) => {
+                lasers.create(x, y, 'laser');
+            });
 
             // Финиш
             finish.create(
@@ -624,14 +683,10 @@
             // АККУМУЛЯТОР
             // =====================================================
 
-            battery = this.physics.add.sprite(
-                650,
-                612,
-                'battery'
-            );
-
-            battery.body.allowGravity = false;
-
+            levelData.batteries.forEach(([x, y]) => {
+                battery = this.physics.add.sprite(x, y, 'battery');
+                battery.body.allowGravity = false;
+            });
 
             // =====================================================
             // СТОЛКНОВЕНИЕ С ПЛАТФОРМАМИ
