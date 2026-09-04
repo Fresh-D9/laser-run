@@ -236,6 +236,7 @@
 
         function preload() {
             this.load.image('playerSprite', 'assets/player.png');
+            this.load.image('enemydrone1Sprite', 'assets/enemy-drone-1.png');
         }
         
         function create() {
@@ -655,7 +656,7 @@
             // =====================================================
 
             currentLevelData.enemies.forEach(([x, y]) => {
-                enemy = this.physics.add.sprite(x, y, 'enemy');
+                enemy = this.physics.add.sprite(x, y, 'enemydrone1Sprite');
                 enemy.setImmovable(true);
                 enemy.body.allowGravity = false;
             });
