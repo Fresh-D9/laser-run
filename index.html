@@ -64,6 +64,7 @@
             scene: [
                 {
                     key: 'Level1',
+                    preload: preload,
                     create: create,
                     update: update
                 },
@@ -189,6 +190,7 @@
             }
         };
 
+        let currentLevelData;
         let player;
         let platforms;
         let cursors;
@@ -232,9 +234,16 @@
         let startX = 200;
         let startY = 500;
 
+        function preload() {
+            this.load.image('playerSprite', 'assets/player.png');
+        }
+        
         function create() {
 
-            const levelData = LEVELS[1];
+            currentLevelData = LEVELS[1];
+
+            startX = currentLevelData.player.x;
+            startY = currentLevelData.player.y;
             
             // =====================================================
             // СБРОС СОСТОЯНИЯ УРОВНЯ
@@ -259,12 +268,7 @@
 
             winText = null;
             
-            this.physics.world.setBounds(
-                0,
-                0,
-                5000,
-                720
-            );
+            this.physics.world.setBounds(0, 0, currentLevelData.width, 720);
             
             // Заголовок
             this.add.text(
@@ -582,7 +586,7 @@
             // ПЛАТФОРМЫ УРОВНЯ
             // =====================================================
 
-            levelData.platforms.forEach(([x, y]) => {
+            currentLevelData.platforms.forEach(([x, y]) => {
 
                 platforms.create(
                     x,
@@ -593,19 +597,17 @@
             });
 
             // СОЗДАНИЕ ЛАЗЕРА-ЛОВУШКИ
-            levelData.lasers.forEach(([x, y]) => {
+            currentLevelData.lasers.forEach(([x, y]) => {
                 lasers.create(x, y, 'laser');
             });
 
             // Финиш
-            finish.create(
-                1650,
-                570,
-                'finish'
-            );
+            currentLevelData.finish.forEach(([x, y]) => {
+                finish.create(x, y, 'finish');
+            });
 
             // Чекпоинт
-            levelData.checkpoints.forEach(([x, y]) => {
+            currentLevelData.checkpoints.forEach(([x, y]) => {
                 checkpoints.create(x, y, 'checkpoint');
             });
 
@@ -614,26 +616,22 @@
             // ИГРОК
             // =====================================================
 
-            player = this.physics.add.sprite(
-                200,
-                500,
-                'player'
-            );
+            player = this.physics.add.sprite(startX, startY, 'playerSprite');
 
             // Переключатель
-            levelData.laserSwitch.forEach(([x, y]) => {
+            currentLevelData.laserSwitch.forEach(([x, y]) => {
                 laserSwitch = this.physics.add.staticImage(x, y, 'laserSwitch');
             });
 
             // =====================================================
             // ДВЕРЬ
             // =====================================================
-            levelData.door.forEach(([x, y]) => {
+            currentLevelData.door.forEach(([x, y]) => {
                 door = this.physics.add.staticImage(x, y, 'door');
             });
 
             // Дополнительная жизнь
-            levelData.extraLives.forEach(([x, y]) => {
+            currentLevelData.extraLives.forEach(([x, y]) => {
                 extraLives.create(x, y, 'extraLife');
             });
 
@@ -643,12 +641,7 @@
 
             playerLaser = this.add.graphics();
 
-            this.cameras.main.setBounds(
-                0,
-                0,
-                5000,
-                720
-            );
+            this.cameras.main.setBounds(0, 0, currentLevelData.width, 720);
 
             this.cameras.main.startFollow(
                 player,
@@ -661,7 +654,7 @@
             // ВРАГ
             // =====================================================
 
-            levelData.enemies.forEach(([x, y]) => {
+            currentLevelData.enemies.forEach(([x, y]) => {
                 enemy = this.physics.add.sprite(x, y, 'enemy');
                 enemy.setImmovable(true);
                 enemy.body.allowGravity = false;
@@ -671,7 +664,7 @@
             // АККУМУЛЯТОР
             // =====================================================
 
-            levelData.batteries.forEach(([x, y]) => {
+            currentLevelData.batteries.forEach(([x, y]) => {
                 battery = this.physics.add.sprite(x, y, 'battery');
                 battery.body.allowGravity = false;
             });
@@ -977,8 +970,8 @@
                 player.setVelocityX(0);
             }
 
-            if (player.x > 4980) {
-                player.x = 4980;
+            if (player.x > currentLevelData.width - 20) {
+                player.x = currentLevelData.width - 20;
                 player.setVelocityX(0);
             }
 
