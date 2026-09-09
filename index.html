@@ -192,6 +192,7 @@
 
         let currentLevelData;
         let player;
+        let playerState = 'idle';
         let platforms;
         let cursors;
         let lasers;
@@ -235,7 +236,11 @@
         let startY = 500;
 
         function preload() {
-            this.load.image('playerSprite', 'assets/player.png');
+            this.load.spritesheet('playerRun', 'assets/player_run.png', {
+                frameWidth: 256,
+                frameHeight: 256
+            });
+
             this.load.image('enemydrone1Sprite', 'assets/enemy-drone-1.png');
         }
         
@@ -329,25 +334,7 @@
             // =====================================================
             // СОЗДАЁМ ПРОСТЫЕ ТЕКСТУРЫ ДЛЯ ПРОТОТИПА
             // =====================================================
-
-            // Текстура игрока
-            const playerGraphics = this.make.graphics({
-                x: 0,
-                y: 0,
-                add: false
-            });
-
-            playerGraphics.fillStyle(0xff3333);
-            playerGraphics.fillRect(0, 0, 40, 60);
-            playerGraphics.generateTexture(
-                'player',
-                40,
-                60
-            );
-
-            playerGraphics.destroy();
-
-
+        
             // Текстура платформы
             const platformGraphics = this.make.graphics({
                 x: 0,
@@ -614,10 +601,74 @@
 
 
             // =====================================================
+            // АНИМАЦИЯ ИГРОКА
+            // =====================================================
+
+            // Анимация бега
+            this.anims.create({
+                key: 'player-run',
+                frames: this.anims.generateFrameNumbers('playerRun', {
+                    start: 0,
+                    end: 7
+                }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            // Анимация покоя
+            this.anims.create({
+                key: 'player-idle',
+                frames: [
+                    { key: 'playerRun', frame: 0 }
+                ],
+                frameRate: 1,
+                repeat: -1
+            });
+
+            // Состояние подъёма в прыжке
+            this.anims.create({
+                key: 'player-jump-up',
+                frames: [
+                    { key: 'playerRun', frame: 1 }
+                ],
+                frameRate: 1,
+                repeat: -1
+            });
+
+            // Состояние падения
+            this.anims.create({
+                key: 'player-jump-fall',
+                frames: [
+                    { key: 'playerRun', frame: 2 }
+                ],
+                frameRate: 1,
+                repeat: -1
+            });
+
+            // Состояние стрельбы
+            this.anims.create({
+                key: 'player-shoot',
+                frames: [
+                    { key: 'playerRun', frame: 3 }
+                ],
+                frameRate: 1,
+                repeat: -1
+            });
+
+
+            // =====================================================
             // ИГРОК
             // =====================================================
 
-            player = this.physics.add.sprite(startX, startY, 'playerSprite');
+            player = this.physics.add.sprite(
+                startX,
+                startY,
+                'playerRun'
+            );
+
+            player.setScale(0.55);
+
+            player.body.setSize(120, 230);
 
             // Переключатель
             currentLevelData.laserSwitch.forEach(([x, y]) => {
@@ -750,6 +801,38 @@
             );
         }
 
+        function setPlayerState(state) {
+
+            if (playerState === state) {
+                return;
+            }
+
+            playerState = state;
+
+            switch (state) {
+
+                case 'idle':
+                    player.anims.play('player-idle', true);
+                    break;
+
+                case 'run':
+                    player.anims.play('player-run', true);
+                    break;
+
+                case 'jump-up':
+                    player.anims.play('player-jump-up', true);
+                    break;
+
+                case 'jump-fall':
+                    player.anims.play('player-jump-fall', true);
+                    break;
+
+                case 'shoot':
+                    player.anims.play('player-shoot', true);
+                    break;
+            }
+        }
+
         function update() {
 
             // Движение врага
@@ -771,18 +854,62 @@
                 }
             }
             
+            // =====================================================
+            // ДВИЖЕНИЕ И СОСТОЯНИЕ ИГРОКА
+            // =====================================================
+
             if (cursors.left.isDown) {
+
                 player.setVelocityX(-300);
                 lastDirection = -1;
                 player.setFlipX(true);
+
             }
             else if (cursors.right.isDown) {
+
                 player.setVelocityX(300);
                 lastDirection = 1;
                 player.setFlipX(false);
+
             }
             else {
+
                 player.setVelocityX(0);
+
+            }
+
+            // =====================================================
+            // ОПРЕДЕЛЯЕМ СОСТОЯНИЕ ИГРОКА
+            // =====================================================
+
+            if (spaceKey.isDown && laserEnergy > 0) {
+
+                setPlayerState('shoot');
+
+            }
+            else if (!player.body.blocked.down) {
+
+                if (player.body.velocity.y < 0) {
+
+                    setPlayerState('jump-up');
+
+                }
+                else {
+
+                    setPlayerState('jump-fall');
+
+                }
+
+            }
+            else if (player.body.velocity.x !== 0) {
+
+                setPlayerState('run');
+
+            }
+            else {
+
+                setPlayerState('idle');
+
             }
 
 
