@@ -193,11 +193,17 @@
         let currentLevelData;
         let player;
         let playerState = 'idle';
+
+        let backgroundFar;
+        let backgroundMid;
+        let backgroundFront;
+
         let platforms;
         let cursors;
         let lasers;
         let finish;
         let winText;
+
         
         let playerLaser;
         let lastDirection = 1;
@@ -242,6 +248,11 @@
             });
 
             this.load.image('enemydrone1Sprite', 'assets/enemy-drone-1.png');
+
+            this.load.image(
+                'backgroundFar',
+                'assets/background_far.png'
+            );
         }
         
         function create() {
@@ -275,6 +286,21 @@
             winText = null;
             
             this.physics.world.setBounds(0, 0, currentLevelData.width, 720);
+
+            // =====================================================
+            // ФОН — FAR
+            // =====================================================
+
+            backgroundFar = this.add.tileSprite(
+                currentLevelData.width / 2,
+                360,
+                currentLevelData.width,
+                720,
+                'backgroundFar'
+            );
+
+            backgroundFar.setScrollFactor(0.10);
+            backgroundFar.setDepth(-30);
             
             // Заголовок
             this.add.text(
