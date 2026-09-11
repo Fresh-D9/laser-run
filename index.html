@@ -954,7 +954,9 @@
                     1
                 );
 
-                const startX = player.x;
+                const startX =
+                    player.x +
+                    lastDirection * (player.displayWidth / 2);
                 const laserY = player.y - player.displayHeight * 0.15;
 
                 const camera = this.cameras.main;
@@ -1004,7 +1006,9 @@
                 laserEnergy > 0
             ) {
 
-                const laserStartX = player.x;
+                const laserStartX =
+                    player.x +
+                    lastDirection * (player.displayWidth / 2);
 
                 const camera = this.cameras.main;
 
@@ -1047,7 +1051,9 @@
                 laserEnergy > 0
             ) {
 
-                const laserStartX = player.x;
+                const laserStartX =
+                    player.x +
+                    lastDirection * (player.displayWidth / 2);
 
                 const laserEndX =
                     lastDirection === 1
