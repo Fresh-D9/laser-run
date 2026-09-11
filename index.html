@@ -955,7 +955,7 @@
                 );
 
                 const startX = player.x;
-                const startY = player.y;
+                const laserY = player.y - player.displayHeight * 0.15;
 
                 const camera = this.cameras.main;
 
@@ -968,12 +968,12 @@
 
                 playerLaser.moveTo(
                     startX,
-                    startY
+                    laserY
                 );
 
                 playerLaser.lineTo(
                     endX,
-                    startY
+                    laserY
                 );
 
                 playerLaser.strokePath();
@@ -1023,9 +1023,12 @@
                         laserEndX
                     );
 
+                const laserY =
+                    player.y - player.displayHeight * 0.15;
+
                 const enemyIsInLaserY =
                     Math.abs(
-                        enemy.y - player.y
+                        enemy.y - laserY
                     ) < 25;
 
                 if (
@@ -1057,7 +1060,8 @@
                 const switchBounds =
                     laserSwitch.getBounds();
 
-                const laserY = player.y;
+                const laserY =
+                    player.y - player.displayHeight * 0.15;
 
                 const laserHitsSwitch =
                     laserY >= switchBounds.top &&
