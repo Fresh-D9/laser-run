@@ -99,10 +99,8 @@
                     // Земля
                     [125, 650],
                     [375, 650],
-
-                    // Первый разрыв
-                    [750, 650],
-                    [1000, 650],
+                    [625, 650],
+                    [875, 650],
 
                     [1250, 650],
                     [1500, 650],
@@ -216,8 +214,7 @@
         let lastDirection = 1;
         let spaceKey;
 
-        let enemy;
-        let enemyDirection = 1;
+        let enemies;
 
         let battery;
         let laserEnergy = 0;
@@ -721,13 +718,25 @@
             );
 
             // =====================================================
-            // ВРАГ
+            // ВРАГИ
             // =====================================================
 
+            enemies = this.physics.add.group();
+
             currentLevelData.enemies.forEach(([x, y]) => {
-                enemy = this.physics.add.sprite(x, y, 'enemydrone1Sprite');
+
+                const enemy = enemies.create(
+                    x,
+                    y,
+                    'enemydrone1Sprite'
+                );
+
                 enemy.setImmovable(true);
+
                 enemy.body.allowGravity = false;
+
+                // Направление движения конкретного врага
+                enemy.direction = 1;
             });
 
             // =====================================================
@@ -755,7 +764,7 @@
 
             this.physics.add.collider(
                 player,
-                enemy,
+                enemies,
                 hitEnemy,
                 null,
                 this
