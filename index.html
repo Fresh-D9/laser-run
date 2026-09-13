@@ -130,9 +130,38 @@
                 ],
 
                 enemies: [
-                    [400, 465, 300, 550, 100],
-                    [900, 350, 800, 1100, 150],
-                    [1400, 450, 1250, 1600, 70]
+                    {
+                        x: 400,
+                        y: 465,
+                        type: 'drone',
+                        scale: 0.55,
+                        left: 300,
+                        right: 550,
+                        speed: 100,
+                        damage: 1
+                    },
+
+                    {
+                        x: 900,
+                        y: 350,
+                        type: 'drone',
+                        scale: 0.40,
+                        left: 800,
+                        right: 1100,
+                        speed: 150,
+                        damage: 2
+                    },
+
+                    {
+                        x: 1400,
+                        y: 450,
+                        type: 'drone',
+                        scale: 0.70,
+                        left: 1250,
+                        right: 1600,
+                        speed: 70,
+                        damage: 1
+                    }
                 ],
 
                 batteries: [
@@ -725,30 +754,37 @@
 
             enemies = this.physics.add.group();
 
-            currentLevelData.enemies.forEach(
-                ([x, y, moveLeft, moveRight, speed]) => {
+            currentLevelData.enemies.forEach((enemyData) => {
 
-                    const enemy = enemies.create(
-                        x,
-                        y,
-                        'enemydrone1Sprite'
-                    );
+                const enemy = enemies.create(
+                    enemyData.x,
+                    enemyData.y,
+                    'enemydrone1Sprite'
+                );
 
-                    enemy.setImmovable(true);
+                // Размер врага
+                enemy.setScale(enemyData.scale);
 
-                    enemy.body.allowGravity = false;
+                enemy.setImmovable(true);
 
-                    // Направление движения
-                    enemy.direction = 1;
+                enemy.body.allowGravity = false;
 
-                    // Границы движения
-                    enemy.moveLeft = moveLeft;
-                    enemy.moveRight = moveRight;
+                // Направление движения
+                enemy.direction = 1;
 
-                    // Скорость движения
-                    enemy.moveSpeed = speed;
-                }
-            );
+                // Границы движения
+                enemy.moveLeft = enemyData.left;
+                enemy.moveRight = enemyData.right;
+
+                // Скорость движения
+                enemy.moveSpeed = enemyData.speed;
+
+                // Урон
+                enemy.damage = enemyData.damage;
+
+                // Тип врага
+                enemy.enemyType = enemyData.type;
+            });
 
             // =====================================================
             // АККУМУЛЯТОР
