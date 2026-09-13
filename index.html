@@ -130,7 +130,8 @@
                 ],
 
                 enemies: [
-                    [400, 465]
+                    [1150, 256],
+                    [1750, 620]
                 ],
 
                 batteries: [
@@ -735,8 +736,12 @@
 
                 enemy.body.allowGravity = false;
 
-                // Направление движения конкретного врага
+                // Направление движения
                 enemy.direction = 1;
+
+                // Границы движения
+                enemy.moveLeft = x - 100;
+                enemy.moveRight = x + 100;
             });
 
             // =====================================================
@@ -862,23 +867,38 @@
 
         function update() {
 
-            // Движение врага
+            // =====================================================
+            // ДВИЖЕНИЕ ВРАГОВ
+            // =====================================================
 
-            if (enemy && enemy.active) {
+            if (enemies) {
 
-                enemy.setVelocityX(
-                    enemyDirection * 100
-                );
+                enemies.children.iterate((enemy) => {
 
-                if (enemy.x >= 550) {
-                    enemyDirection = -1;
-                    enemy.setFlipX(false);
-                }
+                    if (!enemy || !enemy.active) {
+                        return;
+                    }
 
-                if (enemy.x <= 350) {
-                    enemyDirection = 1;
-                    enemy.setFlipX(true);
-                }
+                    enemy.setVelocityX(
+                        enemy.direction * 100
+                    );
+
+                    // Правая граница движения
+                    if (enemy.x >= enemy.moveRight) {
+
+                        enemy.direction = -1;
+
+                        enemy.setFlipX(false);
+                    }
+
+                    // Левая граница движения
+                    if (enemy.x <= enemy.moveLeft) {
+
+                        enemy.direction = 1;
+
+                        enemy.setFlipX(true);
+                    }
+                });
             }
             
             // =====================================================
@@ -1006,11 +1026,12 @@
                 );
             }
 
-            // Проверяем попадание лазера во врага
+            // =====================================================
+            // ПРОВЕРЯЕМ ПОПАДАНИЕ ЛАЗЕРА ВО ВРАГОВ
+            // =====================================================
 
             if (
-                enemy &&
-                enemy.active &&
+                enemies &&
                 spaceKey.isDown &&
                 laserEnergy > 0
             ) {
@@ -1026,30 +1047,41 @@
                         ? camera.scrollX + camera.width
                         : camera.scrollX;
 
-                const enemyIsInLaserX =
-                    enemy.x >= Math.min(
-                        laserStartX,
-                        laserEndX
-                    ) &&
-                    enemy.x <= Math.max(
-                        laserStartX,
-                        laserEndX
-                    );
-
                 const laserY =
-                    player.y - player.displayHeight * 0.15;
+                    player.y -
+                    player.displayHeight * 0.15;
 
-                const enemyIsInLaserY =
-                    Math.abs(
-                        enemy.y - laserY
-                    ) < 25;
+                enemies.children.iterate((enemy) => {
 
-                if (
-                    enemyIsInLaserX &&
-                    enemyIsInLaserY
-                ) {
-                    enemy.destroy();
-                }
+                    if (!enemy || !enemy.active) {
+                        return;
+                    }
+
+                    const enemyIsInLaserX =
+                        enemy.x >= Math.min(
+                            laserStartX,
+                            laserEndX
+                        ) &&
+                        enemy.x <= Math.max(
+                            laserStartX,
+                            laserEndX
+                        );
+
+                    const enemyIsInLaserY =
+                        Math.abs(
+                            enemy.y - laserY
+                        ) < 25;
+
+                    if (
+                        enemyIsInLaserX &&
+                        enemyIsInLaserY
+                    ) {
+
+                        enemy.destroy();
+
+                    }
+
+                });
             }
 
             // Проверка попадания лазера в переключатель
