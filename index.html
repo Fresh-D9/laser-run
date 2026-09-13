@@ -130,8 +130,9 @@
                 ],
 
                 enemies: [
-                    [1150, 256],
-                    [1750, 620]
+                    [400, 465, 300, 550, 100],
+                    [900, 350, 800, 1100, 150],
+                    [1400, 450, 1250, 1600, 70]
                 ],
 
                 batteries: [
@@ -724,25 +725,30 @@
 
             enemies = this.physics.add.group();
 
-            currentLevelData.enemies.forEach(([x, y]) => {
+            currentLevelData.enemies.forEach(
+                ([x, y, moveLeft, moveRight, speed]) => {
 
-                const enemy = enemies.create(
-                    x,
-                    y,
-                    'enemydrone1Sprite'
-                );
+                    const enemy = enemies.create(
+                        x,
+                        y,
+                        'enemydrone1Sprite'
+                    );
 
-                enemy.setImmovable(true);
+                    enemy.setImmovable(true);
 
-                enemy.body.allowGravity = false;
+                    enemy.body.allowGravity = false;
 
-                // Направление движения
-                enemy.direction = 1;
+                    // Направление движения
+                    enemy.direction = 1;
 
-                // Границы движения
-                enemy.moveLeft = x - 100;
-                enemy.moveRight = x + 100;
-            });
+                    // Границы движения
+                    enemy.moveLeft = moveLeft;
+                    enemy.moveRight = moveRight;
+
+                    // Скорость движения
+                    enemy.moveSpeed = speed;
+                }
+            );
 
             // =====================================================
             // АККУМУЛЯТОР
@@ -880,7 +886,7 @@
                     }
 
                     enemy.setVelocityX(
-                        enemy.direction * 100
+                        enemy.direction * enemy.moveSpeed
                     );
 
                     // Правая граница движения
