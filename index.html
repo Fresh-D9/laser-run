@@ -144,7 +144,7 @@
                     {
                         x: 900,
                         y: 350,
-                        type: 'drone',
+                        type: 'flyingDrone',
                         scale: 0.40,
                         left: 800,
                         right: 1100,
@@ -155,10 +155,21 @@
                     {
                         x: 1400,
                         y: 450,
-                        type: 'drone',
+                        type: 'fastDrone',
                         scale: 0.70,
                         left: 1250,
                         right: 1600,
+                        speed: 70,
+                        damage: 1
+                    },
+
+                    {
+                        x: 1800,
+                        y: 500,
+                        type: 'heavyDrone',
+                        scale: 0.80,
+                        left: 1600,
+                        right: 2100,
                         speed: 70,
                         damage: 1
                     }
@@ -276,6 +287,27 @@
         let startX = 200;
         let startY = 500;
 
+        function getEnemySprite(type) {
+
+            switch (type) {
+
+                case 'drone':
+                    return 'enemydrone1Sprite';
+
+                case 'flyingDrone':
+                    return 'enemyFlyDroneSprite';
+
+                case 'fastDrone':
+                    return 'enemyFastDroneSprite';
+
+                case 'heavyDrone':
+                    return 'enemyHeavyDroneSprite';
+
+                default:
+                    return 'enemydrone1Sprite';
+            }
+        }
+                
         function preload() {
             this.load.spritesheet('playerRun', 'assets/player_run.png', {
                 frameWidth: 256,
@@ -288,6 +320,21 @@
             );
 
             this.load.image('enemydrone1Sprite', 'assets/enemy-drone-1.png');
+
+            this.load.image(
+                'enemyFlyDroneSprite',
+                'assets/enemy-flydrone.png'
+            );
+
+            this.load.image(
+                'enemyFastDroneSprite',
+                'assets/enemy-fastdrone.png'
+            );
+
+            this.load.image(
+                'enemyHeavyDroneSprite',
+                'assets/enemy-heavydrone.png'
+            );
 
             this.load.image(
                 'backgroundFar',
@@ -759,7 +806,7 @@
                 const enemy = enemies.create(
                     enemyData.x,
                     enemyData.y,
-                    'enemydrone1Sprite'
+                    getEnemySprite(enemyData.type)
                 );
 
                 // Размер врага
