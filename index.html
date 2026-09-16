@@ -315,6 +315,11 @@
             });
 
             this.load.image(
+                'playerHit',
+                'assets/player-hit.png'
+            );
+
+            this.load.image(
                 'platform',
                 'assets/platform.png'
             );
@@ -1323,17 +1328,21 @@
 
         function playerDeath() {
 
+            // Игрок получил обычный урон
             lives--;
 
             updateLivesText();
 
+            // Если сердечки закончились —
+            // перезапускаем текущий уровень
             if (lives <= 0) {
 
-                restartGame.call(this);
+                this.scene.restart();
 
                 return;
             }
 
+            // Возвращаем игрока на последний чекпоинт
             player.setPosition(
                 checkpointX,
                 checkpointY
@@ -1348,6 +1357,75 @@
                 0,
                 0
             );
+        }
+
+        function playerTakeDamage(sourceX) {
+
+            // Если игрок уже получает урон —
+            // не позволяем нанести несколько ударов подряд
+            if (player.isTakingDamage) {
+                return;
+            }
+
+            player.isTakingDamage = true;
+
+            // Минус одно сердечко
+            lives--;
+
+            updateLivesText();
+
+            // Определяем направление отбрасывания
+            // Источник слева → игрок летит вправо
+            // Источник справа → игрок летит влево
+            const knockbackDirection =
+                player.x < sourceX ? -1 : 1;
+
+            // Останавливаем текущее движение
+            player.setVelocityX(0);
+
+            // Отбрасываем игрока в сторону
+            player.setVelocityX(
+                knockbackDirection * 350
+            );
+
+            // Небольшой прыжок при получении урона
+            player.setVelocityY(-250);
+
+            // Меняем спрайт на изображение получения урона
+            player.setTexture(
+                'playerHit'
+            );
+
+            // Через короткое время возвращаем обычный спрайт
+            this.time.delayedCall(
+                300,
+                () => {
+
+                    if (player.active) {
+
+                        setPlayerState('idle');
+
+                    }
+
+                    player.isTakingDamage = false;
+                }
+            );
+
+            // Если сердечки закончились —
+            // перезапускаем текущий уровень
+            if (lives <= 0) {
+
+                this.time.delayedCall(
+                    300,
+                    () => {
+
+                        this.scene.restart();
+
+                    }
+                );
+
+                return;
+            }
         }
 
         function collectExtraLife(player, life) {
