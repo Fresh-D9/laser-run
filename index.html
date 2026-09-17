@@ -1284,9 +1284,12 @@
 
         }
 
-        function hitEnemy() {
+        function hitEnemy(player, enemy) {
 
-            playerDeath.call(this);
+            playerTakeDamage.call(
+                this,
+                enemy.x
+            );
 
         }
 
@@ -1361,8 +1364,8 @@
 
         function playerTakeDamage(sourceX) {
 
-            // Если игрок уже получает урон —
-            // не позволяем нанести несколько ударов подряд
+            // Если игрок временно неуязвим —
+            // новый удар игнорируем
             if (player.isTakingDamage) {
                 return;
             }
@@ -1383,31 +1386,39 @@
             // Останавливаем текущее движение
             player.setVelocityX(0);
 
-            // Отбрасываем игрока в сторону
+            // Отбрасывание на 20% сильнее
             player.setVelocityX(
-                knockbackDirection * 350
+                knockbackDirection * 420
             );
 
             // Небольшой прыжок при получении урона
-            player.setVelocityY(-250);
+            player.setVelocityY(-300);
 
             // Меняем спрайт на изображение получения урона
             player.setTexture(
                 'playerHit'
             );
 
-            // Через короткое время возвращаем обычный спрайт
+            // Держим спрайт получения урона 500 мс
             this.time.delayedCall(
-                300,
+                500,
                 () => {
 
                     if (player.active) {
-
                         setPlayerState('idle');
-
                     }
+                }
+            );
 
-                    player.isTakingDamage = false;
+            // Неуязвимость после получения удара —
+            // 800 мс
+            this.time.delayedCall(
+                800,
+                () => {
+
+                    if (player.active) {
+                        player.isTakingDamage = false;
+                    }
                 }
             );
 
