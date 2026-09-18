@@ -342,6 +342,16 @@
             );
 
             this.load.image(
+                'enemyHeavyDroneActiveSprite',
+                'assets/enemy-heavydrone-active.png'
+            );
+
+            this.load.image(
+                'enemyHeavyDroneReloadSprite',
+                'assets/enemy-heavydrone-reload.png'
+            );
+
+            this.load.image(
                 'backgroundFar',
                 'assets/background_far.png'
             );
@@ -999,63 +1009,70 @@
             // ДВИЖЕНИЕ И СОСТОЯНИЕ ИГРОКА
             // =====================================================
 
-            if (cursors.left.isDown) {
+            if (!player.isTakingDamage) {
 
-                player.setVelocityX(-300);
-                lastDirection = -1;
-                player.setFlipX(true);
+                if (cursors.left.isDown) {
 
-            }
-            else if (cursors.right.isDown) {
+                    player.setVelocityX(-300);
+                    lastDirection = -1;
+                    player.setFlipX(true);
 
-                player.setVelocityX(300);
-                lastDirection = 1;
-                player.setFlipX(false);
+                }
+                else if (cursors.right.isDown) {
 
-            }
-            else {
+                    player.setVelocityX(300);
+                    lastDirection = 1;
+                    player.setFlipX(false);
 
-                player.setVelocityX(0);
+                }
+                else {
 
+                    player.setVelocityX(0);
+
+                }
             }
 
             // =====================================================
             // ОПРЕДЕЛЯЕМ СОСТОЯНИЕ ИГРОКА
             // =====================================================
 
-            if (spaceKey.isDown && laserEnergy > 0) {
+            if (!player.isTakingDamage) {
 
-                setPlayerState('shoot');
+                if (spaceKey.isDown && laserEnergy > 0) {
 
-            }
-            else if (!player.body.blocked.down) {
+                    setPlayerState('shoot');
 
-                if (player.body.velocity.y < 0) {
+                }
+                else if (!player.body.blocked.down) {
 
-                    setPlayerState('jump-up');
+                    if (player.body.velocity.y < 0) {
+
+                        setPlayerState('jump-up');
+
+                    }
+                    else {
+
+                        setPlayerState('jump-fall');
+
+                    }
+
+                }
+                else if (player.body.velocity.x !== 0) {
+
+                    setPlayerState('run');
 
                 }
                 else {
 
-                    setPlayerState('jump-fall');
+                    setPlayerState('idle');
 
                 }
-
-            }
-            else if (player.body.velocity.x !== 0) {
-
-                setPlayerState('run');
-
-            }
-            else {
-
-                setPlayerState('idle');
-
             }
 
 
             // Прыжок
             if (
+                !player.isTakingDamage &&
                 cursors.up.isDown &&
                 player.body.blocked.down
             ) {
@@ -1278,9 +1295,12 @@
             }
         }
 
-        function hitLaser() {
+        function hitLaser(player, laser) {
 
-            playerDeath.call(this);
+            playerTakeDamage.call(
+                this,
+                laser.x
+            );
 
         }
 
@@ -1386,9 +1406,9 @@
             // Останавливаем текущее движение
             player.setVelocityX(0);
 
-            // Отбрасывание на 20% сильнее
+            // Отбрасывание
             player.setVelocityX(
-                knockbackDirection * 420
+                knockbackDirection * 200
             );
 
             // Небольшой прыжок при получении урона
