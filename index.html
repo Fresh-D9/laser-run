@@ -307,6 +307,31 @@
                     return 'enemydrone1Sprite';
             }
         }
+
+        // =====================================================
+        // НАСТРОЙКИ ТЯЖЁЛОГО ДРОНА
+        // =====================================================
+
+        const HEAVY_DRONE_CONFIG = {
+
+            // Сколько времени дрон продолжает патрулировать
+            // после обнаружения игрока
+            detectionDelay: 1000,
+
+            // Сколько времени дрон находится
+            // в активном режиме перед первым выстрелом
+            firstAimTime: 2000,
+
+            // Сколько времени дрон находится
+            // в активном режиме перед последующими выстрелами
+            repeatAimTime: 1000,
+
+            // Время перезарядки
+            reloadTime: 2000,
+
+            // Продолжительность видимого лазерного выстрела
+            laserDuration: 150
+        };
                 
         function preload() {
             this.load.spritesheet('playerRun', 'assets/player_run.png', {
@@ -846,6 +871,20 @@
 
                 // Тип врага
                 enemy.enemyType = enemyData.type;
+
+                // =====================================================
+                // СОСТОЯНИЕ ТЯЖЁЛОГО ДРОНА
+                // =====================================================
+
+                if (enemyData.type === 'heavyDrone') {
+
+                    enemy.heavyState = 'patrol';
+
+                    enemy.heavyStateTimer = 0;
+
+                    enemy.heavyHasDetectedPlayer = false;
+
+                }
             });
 
             // =====================================================
@@ -983,25 +1022,192 @@
                         return;
                     }
 
-                    enemy.setVelocityX(
-                        enemy.direction * enemy.moveSpeed
-                    );
+                    // =================================================
+                    // ОБЫЧНЫЕ ВРАГИ
+                    // =================================================
 
-                    // Правая граница движения
-                    if (enemy.x >= enemy.moveRight) {
+                    if (enemy.enemyType !== 'heavyDrone') {
 
-                        enemy.direction = -1;
+                        enemy.setVelocityX(
+                            enemy.direction * enemy.moveSpeed
+                        );
 
-                        enemy.setFlipX(false);
+                        // Правая граница движения
+                        if (enemy.x >= enemy.moveRight) {
+
+                            enemy.direction = -1;
+
+                            enemy.setFlipX(false);
+                        }
+
+                        // Левая граница движения
+                        if (enemy.x <= enemy.moveLeft) {
+
+                            enemy.direction = 1;
+
+                            enemy.setFlipX(true);
+                        }
+
+                        return;
                     }
 
-                    // Левая граница движения
-                    if (enemy.x <= enemy.moveLeft) {
 
-                        enemy.direction = 1;
+                    // =================================================
+                    // ТЯЖЁЛЫЙ ДРОН
+                    // =================================================
 
-                        enemy.setFlipX(true);
+                    const camera = this.cameras.main;
+
+                    const playerOnScreen =
+                        player.x >= camera.scrollX &&
+                        player.x <= camera.scrollX + camera.width &&
+                        player.y >= camera.scrollY &&
+                        player.y <= camera.scrollY + camera.height;
+
+
+                    // =================================================
+                    // PATROL
+                    // =================================================
+
+                    if (enemy.heavyState === 'patrol') {
+
+                        // Дрон патрулирует
+                        enemy.setVelocityX(
+                            enemy.direction * enemy.moveSpeed
+                        );
+
+                        // Границы движения
+                        if (enemy.x >= enemy.moveRight) {
+
+                            enemy.direction = -1;
+
+                            enemy.setFlipX(false);
+                        }
+
+                        if (enemy.x <= enemy.moveLeft) {
+
+                            enemy.direction = 1;
+
+                            enemy.setFlipX(true);
+                        }
+
+
+                        // Игрок появился на экране
+                        if (playerOnScreen) {
+
+                            enemy.heavyState = 'detection';
+
+                            enemy.heavyStateTimer =
+                                this.time.now +
+                                HEAVY_DRONE_CONFIG.detectionDelay;
+
+                            // На всякий случай возвращаем
+                            // обычный спрайт
+                            enemy.setTexture(
+                                'enemyHeavyDroneSprite'
+                            );
+                        }
+
+                        return;
                     }
+
+
+                    // =================================================
+                    // DETECTION
+                    // =================================================
+
+                    if (enemy.heavyState === 'detection') {
+
+                        // Дрон продолжает патрулировать
+                        enemy.setVelocityX(
+                            enemy.direction * enemy.moveSpeed
+                        );
+
+                        // Границы движения
+                        if (enemy.x >= enemy.moveRight) {
+
+                            enemy.direction = -1;
+
+                            enemy.setFlipX(false);
+                        }
+
+                        if (enemy.x <= enemy.moveLeft) {
+
+                            enemy.direction = 1;
+
+                            enemy.setFlipX(true);
+                        }
+
+
+                        // Игрок ушёл с экрана
+                        if (!playerOnScreen) {
+
+                            enemy.heavyState = 'patrol';
+
+                            enemy.heavyStateTimer = 0;
+
+                            enemy.setTexture(
+                                'enemyHeavyDroneSprite'
+                            );
+
+                            return;
+                        }
+
+
+                        // Закончилась задержка обнаружения
+                        if (
+                            this.time.now >=
+                            enemy.heavyStateTimer
+                        ) {
+
+                            enemy.heavyState = 'active';
+
+                            enemy.setVelocityX(0);
+
+                            enemy.setTexture(
+                                'enemyHeavyDroneActiveSprite'
+                            );
+
+                            enemy.heavyStateTimer =
+                                this.time.now +
+                                HEAVY_DRONE_CONFIG.firstAimTime;
+                        }
+
+                        return;
+                    }
+
+
+                    // =================================================
+                    // ACTIVE
+                    // =================================================
+
+                    if (enemy.heavyState === 'active') {
+
+                        // Дрон стоит на месте
+                        enemy.setVelocityX(0);
+
+                        // Если игрок ушёл с экрана —
+                        // возвращаемся к патрулированию
+                        if (!playerOnScreen) {
+
+                            enemy.heavyState = 'patrol';
+
+                            enemy.heavyStateTimer = 0;
+
+                            enemy.setTexture(
+                                'enemyHeavyDroneSprite'
+                            );
+
+                            return;
+                        }
+
+                        // Пока просто ждём окончания
+                        // периода прицеливания.
+                        // Выстрел добавим следующим шагом.
+
+                        return;
+                    }
+
                 });
             }
             
