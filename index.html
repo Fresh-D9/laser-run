@@ -257,6 +257,7 @@
         let spaceKey;
 
         let enemies;
+        let heavyDroneLaser;
 
         let battery;
         let laserEnergy = 0;
@@ -835,6 +836,9 @@
                 0.08
             );
 
+            // Лазер тяжёлого дрона
+            heavyDroneLaser = this.add.graphics();
+
             // =====================================================
             // ВРАГИ
             // =====================================================
@@ -1058,11 +1062,11 @@
 
                     const camera = this.cameras.main;
 
-                    const playerOnScreen =
-                        player.x >= camera.scrollX &&
-                        player.x <= camera.scrollX + camera.width &&
-                        player.y >= camera.scrollY &&
-                        player.y <= camera.scrollY + camera.height;
+                    const enemyOnScreen =
+                        enemy.x >= camera.scrollX &&
+                        enemy.x <= camera.scrollX + camera.width &&
+                        enemy.y >= camera.scrollY &&
+                        enemy.y <= camera.scrollY + camera.height;
 
 
                     // =================================================
@@ -1092,8 +1096,8 @@
                         }
 
 
-                        // Игрок появился на экране
-                        if (playerOnScreen) {
+                        // Враг появился на экране
+                        if (enemyOnScreen) {
 
                             enemy.heavyState = 'detection';
 
@@ -1139,8 +1143,8 @@
                         }
 
 
-                        // Игрок ушёл с экрана
-                        if (!playerOnScreen) {
+                        // Враг ушёл с экрана
+                        if (!enemyOnScreen) {
 
                             enemy.heavyState = 'patrol';
 
@@ -1188,7 +1192,7 @@
 
                         // Если игрок ушёл с экрана —
                         // возвращаемся к патрулированию
-                        if (!playerOnScreen) {
+                        if (!enemyOnScreen) {
 
                             enemy.heavyState = 'patrol';
 
@@ -1201,9 +1205,71 @@
                             return;
                         }
 
-                        // Пока просто ждём окончания
-                        // периода прицеливания.
-                        // Выстрел добавим следующим шагом.
+                        // Время прицеливания закончилось
+                        if (
+                            this.time.now >=
+                            enemy.heavyStateTimer
+                        ) {
+
+                            // Выстрел!
+                            fireHeavyDroneLaser.call(
+                                this,
+                                enemy
+                            );
+
+                            // Переходим в перезарядку
+                            enemy.heavyState = 'reload';
+
+                            enemy.setTexture(
+                                'enemyHeavyDroneReloadSprite'
+                            );
+
+                            enemy.heavyStateTimer =
+                                this.time.now +
+                                HEAVY_DRONE_CONFIG.reloadTime;
+                        }
+
+                        return;
+                    }
+
+                    // =================================================
+                    // RELOAD
+                    // =================================================
+
+                    if (enemy.heavyState === 'reload') {
+
+                        enemy.setVelocityX(0);
+
+                        // Если дрон ушёл с экрана —
+                        // возвращаем его в обычное патрулирование
+                        if (!enemyOnScreen) {
+
+                            enemy.heavyState = 'patrol';
+                            enemy.heavyStateTimer = 0;
+
+                            enemy.setTexture(
+                                'enemyHeavyDroneSprite'
+                            );
+
+                            return;
+                        }
+
+                        // Перезарядка закончилась
+                        if (
+                            this.time.now >=
+                            enemy.heavyStateTimer
+                        ) {
+
+                            enemy.heavyState = 'active';
+
+                            enemy.setTexture(
+                                'enemyHeavyDroneActiveSprite'
+                            );
+
+                            enemy.heavyStateTimer =
+                                this.time.now +
+                                HEAVY_DRONE_CONFIG.repeatAimTime;
+                        }
 
                         return;
                     }
@@ -1663,6 +1729,110 @@
 
                 return;
             }
+        }
+
+        function fireHeavyDroneLaser(enemy) {
+
+            if (!player || !player.active) {
+                return;
+            }
+
+            const startX = enemy.x;
+            const startY = enemy.y;
+
+            const endX = player.x;
+            const endY = player.y;
+
+            heavyDroneLaser.clear();
+
+            heavyDroneLaser.lineStyle(
+                6,
+                0xff0000,
+                1
+            );
+
+            heavyDroneLaser.beginPath();
+
+            heavyDroneLaser.moveTo(
+                startX,
+                startY
+            );
+
+            heavyDroneLaser.lineTo(
+                endX,
+                endY
+            );
+
+            heavyDroneLaser.strokePath();
+
+            // =========================================
+            // ПРОВЕРКА ПОПАДАНИЯ В ИГРОКА
+            // =========================================
+
+            const laserLength = Phaser.Math.Distance.Between(
+                startX,
+                startY,
+                endX,
+                endY
+            );
+
+            const steps = Math.ceil(laserLength / 10);
+
+            let hitPlayer = false;
+
+            for (let i = 0; i <= steps; i++) {
+
+                const t = i / steps;
+
+                const laserX = Phaser.Math.Linear(
+                    startX,
+                    endX,
+                    t
+                );
+
+                const laserY = Phaser.Math.Linear(
+                    startY,
+                    endY,
+                    t
+                );
+
+                const distanceToPlayer =
+                    Phaser.Math.Distance.Between(
+                        laserX,
+                        laserY,
+                        player.x,
+                        player.y
+                    );
+
+                if (distanceToPlayer < 30) {
+
+                    hitPlayer = true;
+                    break;
+                }
+            }
+
+            if (hitPlayer) {
+
+                playerTakeDamage.call(
+                    this,
+                    enemy.x
+                );
+            }
+
+            // =========================================
+            // УБИРАЕМ ЛАЗЕР
+            // =========================================
+
+            this.time.delayedCall(
+                HEAVY_DRONE_CONFIG.laserDuration,
+                () => {
+
+                    if (heavyDroneLaser) {
+                        heavyDroneLaser.clear();
+                    }
+
+                }
+            );
         }
 
         function collectExtraLife(player, life) {
