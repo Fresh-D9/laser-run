@@ -1737,25 +1737,43 @@
                 return;
             }
 
+            // =========================================
+            // ТОЧКА ВЫСТРЕЛА
+            // =========================================
+
             const startX = enemy.x;
             const startY = enemy.y;
+
+            // =========================================
+            // ДРОН СТРЕЛЯЕТ В ТЕКУЩУЮ ПОЗИЦИЮ ИГРОКА
+            // =========================================
 
             const endX = player.x;
             const endY = player.y;
 
             // =========================================
-            // ПРОВЕРЯЕМ, ЕСТЬ ЛИ ПЛАТФОРМА НА ПУТИ ЛАЗЕРА
+            // ИЩЕМ БЛИЖАЙШУЮ ПЛАТФОРМУ НА ПУТИ ЛАЗЕРА
             // =========================================
 
-            let laserEndX = endX;
-            let laserEndY = endY;
-
-            let closestDistance = Phaser.Math.Distance.Between(
+            const laserLine = new Phaser.Geom.Line(
                 startX,
                 startY,
                 endX,
                 endY
             );
+
+            let laserEndX = endX;
+            let laserEndY = endY;
+
+            let closestHitDistance =
+                Phaser.Math.Distance.Between(
+                    startX,
+                    startY,
+                    endX,
+                    endY
+                );
+
+            let laserHitPlatform = false;
 
             platforms.children.iterate((platform) => {
 
@@ -1765,74 +1783,44 @@
 
                 const bounds = platform.getBounds();
 
-                const intersection =
+                const intersectionPoints =
                     Phaser.Geom.Intersects.GetLineToRectangle(
-                        new Phaser.Geom.Line(
-                            startX,
-                            startY,
-                            endX,
-                            endY
-                        ),
+                        laserLine,
                         bounds
                     );
 
-                if (!intersection) {
+                if (!intersectionPoints || intersectionPoints.length === 0) {
                     return;
                 }
 
-                // Найдём ближайшую точку пересечения
-                // линии лазера с платформой
+                // Проверяем все точки пересечения
+                // и выбираем ближайшую к дрону.
 
-                const points = [
-                    new Phaser.Geom.Point(
-                        bounds.left,
-                        bounds.top
-                    ),
-                    new Phaser.Geom.Point(
-                        bounds.right,
-                        bounds.top
-                    ),
-                    new Phaser.Geom.Point(
-                        bounds.left,
-                        bounds.bottom
-                    ),
-                    new Phaser.Geom.Point(
-                        bounds.right,
-                        bounds.bottom
-                    )
-                ];
+                intersectionPoints.forEach((point) => {
 
-                const distanceToPlatform =
-                    Math.min(
-                        ...points.map((point) =>
-                            Phaser.Math.Distance.Between(
-                                startX,
-                                startY,
-                                point.x,
-                                point.y
-                            )
-                        )
-                    );
+                    const distance =
+                        Phaser.Math.Distance.Between(
+                            startX,
+                            startY,
+                            point.x,
+                            point.y
+                        );
 
-                if (distanceToPlatform < closestDistance) {
+                    if (distance < closestHitDistance) {
 
-                    closestDistance = distanceToPlatform;
+                        closestHitDistance = distance;
 
-                    // Пока используем ближайшую точку
-                    // платформы как конец лазера
-                    laserEndX = Phaser.Math.Clamp(
-                        endX,
-                        bounds.left,
-                        bounds.right
-                    );
+                        laserEndX = point.x;
+                        laserEndY = point.y;
 
-                    laserEndY = Phaser.Math.Clamp(
-                        endY,
-                        bounds.top,
-                        bounds.bottom
-                    );
-                }
+                        laserHitPlatform = true;
+                    }
+                });
             });
+
+            // =========================================
+            // РИСУЕМ ЛАЗЕР
+            // =========================================
 
             heavyDroneLaser.clear();
 
@@ -1857,48 +1845,55 @@
             heavyDroneLaser.strokePath();
 
             // =========================================
-            // ПРОВЕРКА ПОПАДАНИЯ В ИГРОКА
+            // ПРОВЕРЯЕМ ПОПАДАНИЕ В ИГРОКА
             // =========================================
-
-            const laserLength = Phaser.Math.Distance.Between(
-                startX,
-                startY,
-                endX,
-                endY
-            );
-
-            const steps = Math.ceil(laserLength / 10);
 
             let hitPlayer = false;
 
-            for (let i = 0; i <= steps; i++) {
+            if (!laserHitPlatform) {
 
-                const t = i / steps;
-
-                const laserX = Phaser.Math.Linear(
-                    startX,
-                    endX,
-                    t
-                );
-
-                const laserY = Phaser.Math.Linear(
-                    startY,
-                    endY,
-                    t
-                );
-
-                const distanceToPlayer =
+                const laserLength =
                     Phaser.Math.Distance.Between(
-                        laserX,
-                        laserY,
-                        player.x,
-                        player.y
+                        startX,
+                        startY,
+                        endX,
+                        endY
                     );
 
-                if (distanceToPlayer < 30) {
+                const steps =
+                    Math.ceil(laserLength / 10);
 
-                    hitPlayer = true;
-                    break;
+                for (let i = 0; i <= steps; i++) {
+
+                    const t = i / steps;
+
+                    const laserX =
+                        Phaser.Math.Linear(
+                            startX,
+                            endX,
+                            t
+                        );
+
+                    const laserY =
+                        Phaser.Math.Linear(
+                            startY,
+                            endY,
+                            t
+                        );
+
+                    const distanceToPlayer =
+                        Phaser.Math.Distance.Between(
+                            laserX,
+                            laserY,
+                            player.x,
+                            player.y
+                        );
+
+                    if (distanceToPlayer < 30) {
+
+                        hitPlayer = true;
+                        break;
+                    }
                 }
             }
 
