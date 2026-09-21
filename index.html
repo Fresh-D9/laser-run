@@ -1743,6 +1743,97 @@
             const endX = player.x;
             const endY = player.y;
 
+            // =========================================
+            // ПРОВЕРЯЕМ, ЕСТЬ ЛИ ПЛАТФОРМА НА ПУТИ ЛАЗЕРА
+            // =========================================
+
+            let laserEndX = endX;
+            let laserEndY = endY;
+
+            let closestDistance = Phaser.Math.Distance.Between(
+                startX,
+                startY,
+                endX,
+                endY
+            );
+
+            platforms.children.iterate((platform) => {
+
+                if (!platform || !platform.active) {
+                    return;
+                }
+
+                const bounds = platform.getBounds();
+
+                const intersection =
+                    Phaser.Geom.Intersects.GetLineToRectangle(
+                        new Phaser.Geom.Line(
+                            startX,
+                            startY,
+                            endX,
+                            endY
+                        ),
+                        bounds
+                    );
+
+                if (!intersection) {
+                    return;
+                }
+
+                // Найдём ближайшую точку пересечения
+                // линии лазера с платформой
+
+                const points = [
+                    new Phaser.Geom.Point(
+                        bounds.left,
+                        bounds.top
+                    ),
+                    new Phaser.Geom.Point(
+                        bounds.right,
+                        bounds.top
+                    ),
+                    new Phaser.Geom.Point(
+                        bounds.left,
+                        bounds.bottom
+                    ),
+                    new Phaser.Geom.Point(
+                        bounds.right,
+                        bounds.bottom
+                    )
+                ];
+
+                const distanceToPlatform =
+                    Math.min(
+                        ...points.map((point) =>
+                            Phaser.Math.Distance.Between(
+                                startX,
+                                startY,
+                                point.x,
+                                point.y
+                            )
+                        )
+                    );
+
+                if (distanceToPlatform < closestDistance) {
+
+                    closestDistance = distanceToPlatform;
+
+                    // Пока используем ближайшую точку
+                    // платформы как конец лазера
+                    laserEndX = Phaser.Math.Clamp(
+                        endX,
+                        bounds.left,
+                        bounds.right
+                    );
+
+                    laserEndY = Phaser.Math.Clamp(
+                        endY,
+                        bounds.top,
+                        bounds.bottom
+                    );
+                }
+            });
+
             heavyDroneLaser.clear();
 
             heavyDroneLaser.lineStyle(
@@ -1759,8 +1850,8 @@
             );
 
             heavyDroneLaser.lineTo(
-                endX,
-                endY
+                laserEndX,
+                laserEndY
             );
 
             heavyDroneLaser.strokePath();
