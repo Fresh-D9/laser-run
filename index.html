@@ -5,7 +5,7 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
 
     <title>LASER RUN</title>
@@ -30,11 +30,115 @@
         canvas {
             display: block;
         }
+
+        #mobileControls {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            display: none;
+
+            pointer-events: none;
+
+            z-index: 1000;
+        }
+
+        #movementButtons,
+        #actionButtons {
+            position: absolute;
+            bottom: 20px;
+
+            display: flex;
+            gap: 12px;
+
+            pointer-events: auto;
+        }
+
+        #movementButtons {
+            left: 20px;
+        }
+
+        #actionButtons {
+            right: 20px;
+        }
+
+        .mobileButton {
+            width: 70px;
+            height: 70px;
+
+            border: none;
+            border-radius: 18px;
+
+            background: rgba(0, 0, 0, 0.55);
+            color: white;
+
+            font-size: 30px;
+            font-weight: bold;
+
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobileButton:active {
+            background: rgba(255, 0, 0, 0.75);
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 900px) {
+
+            #mobileControls {
+                display: block;
+            }
+        }
     </style>
 </head>
 
 <body>
 
+    <div id="mobileControls">
+
+        <div id="movementButtons">
+
+            <button
+                id="leftButton"
+                class="mobileButton"
+            >
+                ◀
+            </button>
+
+            <button
+                id="rightButton"
+                class="mobileButton"
+            >
+                ▶
+            </button>
+
+        </div>
+
+        <div id="actionButtons">
+
+            <button
+                id="jumpButton"
+                class="mobileButton"
+            >
+                ▲
+            </button>
+
+            <button
+                id="laserButton"
+                class="mobileButton"
+            >
+                🔴
+            </button>
+
+        </div>
+
+    </div>
+    
     <!-- Подключаем Phaser -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
 
@@ -46,6 +150,13 @@
 
             width: 1280,
             height: 720,
+
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH,
+                width: 1280,
+                height: 720
+            },
 
             backgroundColor: '#181818',
 
