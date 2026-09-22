@@ -333,6 +333,16 @@
             // Продолжительность видимого лазерного выстрела
             laserDuration: 150
         };
+
+        // =====================================================
+        // НАСТРОЙКИ БЫСТРОГО ДРОНА
+        // =====================================================
+
+        const FAST_DRONE_CONFIG = {
+            detectionDelay: 1000,
+            activeTime: 1000,
+            chaseSpeed: 180
+        };
                 
         function preload() {
             this.load.spritesheet('playerRun', 'assets/player_run.png', {
@@ -360,6 +370,11 @@
             this.load.image(
                 'enemyFastDroneSprite',
                 'assets/enemy-fastdrone.png'
+            );
+
+            this.load.image(
+                'enemyFastDroneActiveSprite',
+                'assets/enemy-fastdrone-active.png'
             );
 
             this.load.image(
@@ -880,14 +895,23 @@
                 // СОСТОЯНИЕ ТЯЖЁЛОГО ДРОНА
                 // =====================================================
 
+                enemy.enemyType = enemyData.type;
+
                 if (enemyData.type === 'heavyDrone') {
 
                     enemy.heavyState = 'patrol';
-
                     enemy.heavyStateTimer = 0;
-
                     enemy.heavyHasDetectedPlayer = false;
+                }
 
+                // =====================================================
+                // СОСТОЯНИЕ БЫСТРОГО ДРОНА
+                // =====================================================
+
+                if (enemyData.type === 'fastDrone') {
+
+                    enemy.fastState = 'patrol';
+                    enemy.fastStateTimer = 0;
                 }
             });
 
@@ -1024,6 +1048,237 @@
 
                     if (!enemy || !enemy.active) {
                         return;
+                    }
+
+                    // =================================================
+                    // FAST DRONE
+                    // =================================================
+
+                    if (enemy.enemyType === 'fastDrone') {
+
+                        const camera = this.cameras.main;
+
+                        const enemyOnScreen =
+                            enemy.x >= camera.scrollX &&
+                            enemy.x <= camera.scrollX + camera.width &&
+                            enemy.y >= camera.scrollY &&
+                            enemy.y <= camera.scrollY + camera.height;
+
+
+                        // =============================================
+                        // PATROL
+                        // =============================================
+
+                        if (enemy.fastState === 'patrol') {
+
+                            enemy.setVelocityX(
+                                enemy.direction * enemy.moveSpeed
+                            );
+
+                            if (enemy.x >= enemy.moveRight) {
+
+                                enemy.direction = -1;
+
+                                enemy.setFlipX(false);
+                            }
+
+                            if (enemy.x <= enemy.moveLeft) {
+
+                                enemy.direction = 1;
+
+                                enemy.setFlipX(true);
+                            }
+
+                            // Дрон появился в кадре
+                            if (enemyOnScreen) {
+
+                                enemy.fastState = 'detection';
+
+                                enemy.fastStateTimer =
+                                    this.time.now +
+                                    FAST_DRONE_CONFIG.detectionDelay;
+                            }
+
+                            return;
+                        }
+
+
+                        // =============================================
+                        // DETECTION
+                        // =============================================
+
+                        if (enemy.fastState === 'detection') {
+
+                            // Пока обнаруживает игрока —
+                            // продолжает обычное патрулирование
+
+                            enemy.setVelocityX(
+                                enemy.direction * enemy.moveSpeed
+                            );
+
+                            if (enemy.x >= enemy.moveRight) {
+
+                                enemy.direction = -1;
+
+                                enemy.setFlipX(false);
+                            }
+
+                            if (enemy.x <= enemy.moveLeft) {
+
+                                enemy.direction = 1;
+
+                                enemy.setFlipX(true);
+                            }
+
+                            // Если дрон снова исчез из кадра —
+                            // возвращаем обычный патруль
+
+                            if (!enemyOnScreen) {
+
+                                enemy.fastState = 'patrol';
+                                enemy.fastStateTimer = 0;
+
+                                enemy.setTexture(
+                                    'enemyFastDroneSprite'
+                                );
+
+                                return;
+                            }
+
+                            // Закончилось время обнаружения
+
+                            if (
+                                this.time.now >=
+                                enemy.fastStateTimer
+                            ) {
+
+                                enemy.fastState = 'active';
+
+                                enemy.setVelocityX(0);
+
+                                enemy.setTexture(
+                                    'enemyFastDroneActiveSprite'
+                                );
+
+                                enemy.fastStateTimer =
+                                    this.time.now +
+                                    FAST_DRONE_CONFIG.activeTime;
+                            }
+
+                            return;
+                        }
+
+
+                        // =============================================
+                        // ACTIVE
+                        // =============================================
+
+                        if (enemy.fastState === 'active') {
+
+                            enemy.setVelocityX(0);
+
+                            // Если исчез из кадра —
+                            // возвращаем патруль
+
+                            if (!enemyOnScreen) {
+
+                                enemy.fastState = 'patrol';
+                                enemy.fastStateTimer = 0;
+
+                                enemy.setTexture(
+                                    'enemyFastDroneSprite'
+                                );
+
+                                return;
+                            }
+
+                            // Закончилось время остановки
+
+                            if (
+                                this.time.now >=
+                                enemy.fastStateTimer
+                            ) {
+
+                                enemy.fastState = 'chase';
+                            }
+
+                            return;
+                        }
+
+
+                        // =============================================
+                        // CHASE
+                        // =============================================
+                                            
+                        if (enemy.fastState === 'chase') {
+                        
+                            // Если дрон исчез из кадра —
+                            // возвращаем обычный патруль
+                        
+                            if (!enemyOnScreen) {
+                            
+                                enemy.fastState = 'patrol';
+                                enemy.fastStateTimer = 0;
+                            
+                                enemy.setTexture(
+                                    'enemyFastDroneSprite'
+                                );
+                            
+                                return;
+                            }
+                        
+                        
+                            // =========================================
+                            // ПРЕСЛЕДОВАНИЕ ИГРОКА
+                            // =========================================
+                        
+                            if (player.x < enemy.x) {
+                            
+                                // Игрок слева
+                            
+                                enemy.direction = -1;
+                            
+                                // Если мы ещё можем двигаться влево
+                                if (enemy.x > enemy.moveLeft) {
+                                
+                                    enemy.setVelocityX(
+                                        -FAST_DRONE_CONFIG.chaseSpeed
+                                    );
+                                
+                                    enemy.setFlipX(false);
+                                
+                                } else {
+                                
+                                    // Упёрлись в левую границу
+                                    enemy.x = enemy.moveLeft;
+                                    enemy.setVelocityX(0);
+                                }
+                            
+                            } else {
+                            
+                                // Игрок справа
+                            
+                                enemy.direction = 1;
+                            
+                                // Если мы ещё можем двигаться вправо
+                                if (enemy.x < enemy.moveRight) {
+                                
+                                    enemy.setVelocityX(
+                                        FAST_DRONE_CONFIG.chaseSpeed
+                                    );
+                                
+                                    enemy.setFlipX(true);
+                                
+                                } else {
+                                
+                                    // Упёрлись в правую границу
+                                    enemy.x = enemy.moveRight;
+                                    enemy.setVelocityX(0);
+                                }
+                            }
+                            
+                            return;
+                        }
                     }
 
                     // =================================================
