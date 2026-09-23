@@ -1280,6 +1280,9 @@
 
         function update() {
 
+            const laserPressed =
+                spaceKey.isDown || mobileLaser;
+
             // =====================================================
             // ДВИЖЕНИЕ ВРАГОВ
             // =====================================================
@@ -1811,10 +1814,7 @@
             if (!player.isTakingDamage) {
 
                 if (
-                    (
-                        spaceKey.isDown ||
-                        mobileLaser
-                    ) &&
+                    laserPressed &&
                     laserEnergy > 0
                 ) {
                     setPlayerState('shoot');
@@ -1861,10 +1861,7 @@
             playerLaser.clear();
 
             if (
-                (
-                    spaceKey.isDown ||
-                    mobileLaser
-                ) &&
+                laserPressed &&
                 laserEnergy > 0
             ) {
 
@@ -1923,7 +1920,7 @@
 
             if (
                 enemies &&
-                spaceKey.isDown &&
+                laserPressed &&
                 laserEnergy > 0
             ) {
 
@@ -1979,7 +1976,7 @@
             if (
                 laserSwitch &&
                 laserSwitch.active &&
-                spaceKey.isDown &&
+                laserPressed &&
                 laserEnergy > 0
             ) {
 
