@@ -352,6 +352,11 @@
         let player;
         let playerState = 'idle';
 
+        let mobileLeft = false;
+        let mobileRight = false;
+        let mobileJump = false;
+        let mobileLaser = false;
+
         let backgroundFar;
         let backgroundMid;
         let backgroundFront;
@@ -1113,6 +1118,132 @@
                 restartGame,
                 this
             );
+
+            // =====================================================
+            // МОБИЛЬНОЕ УПРАВЛЕНИЕ
+            // =====================================================
+
+            const leftButton =
+                document.getElementById('leftButton');
+
+            const rightButton =
+                document.getElementById('rightButton');
+
+            const jumpButton =
+                document.getElementById('jumpButton');
+
+            const laserButton =
+                document.getElementById('laserButton');
+
+
+            // Движение влево
+
+            leftButton.addEventListener(
+                'pointerdown',
+                () => {
+                    mobileLeft = true;
+                }
+            );
+
+            leftButton.addEventListener(
+                'pointerup',
+                () => {
+                    mobileLeft = false;
+                }
+            );
+
+            leftButton.addEventListener(
+                'pointercancel',
+                () => {
+                    mobileLeft = false;
+                }
+            );
+
+            leftButton.addEventListener(
+                'pointerleave',
+                () => {
+                    mobileLeft = false;
+                }
+            );
+
+
+            // Движение вправо
+
+            rightButton.addEventListener(
+                'pointerdown',
+                () => {
+                    mobileRight = true;
+                }
+            );
+
+            rightButton.addEventListener(
+                'pointerup',
+                () => {
+                    mobileRight = false;
+                }
+            );
+
+            rightButton.addEventListener(
+                'pointercancel',
+                () => {
+                    mobileRight = false;
+                }
+            );
+
+            rightButton.addEventListener(
+                'pointerleave',
+                () => {
+                    mobileRight = false;
+                }
+            );
+
+
+            // Прыжок
+
+            jumpButton.addEventListener(
+                'pointerdown',
+                () => {
+                    mobileJump = true;
+                }
+            );
+
+            jumpButton.addEventListener(
+                'pointerup',
+                () => {
+                    mobileJump = false;
+                }
+            );
+
+            jumpButton.addEventListener(
+                'pointercancel',
+                () => {
+                    mobileJump = false;
+                }
+            );
+
+
+            // Лазер
+
+            laserButton.addEventListener(
+                'pointerdown',
+                () => {
+                    mobileLaser = true;
+                }
+            );
+
+            laserButton.addEventListener(
+                'pointerup',
+                () => {
+                    mobileLaser = false;
+                }
+            );
+
+            laserButton.addEventListener(
+                'pointercancel',
+                () => {
+                    mobileLaser = false;
+                }
+            );
         }
 
         function setPlayerState(state) {
@@ -1649,24 +1780,27 @@
 
             if (!player.isTakingDamage) {
 
-                if (cursors.left.isDown) {
+                if (
+                    cursors.left.isDown ||
+                    mobileLeft
+                ) {
 
-                    player.setVelocityX(-300);
-                    lastDirection = -1;
+                    player.setVelocityX(-250);
                     player.setFlipX(true);
+                    lastDirection = -1;
 
-                }
-                else if (cursors.right.isDown) {
+                } else if (
+                    cursors.right.isDown ||
+                    mobileRight
+                ) {
 
-                    player.setVelocityX(300);
-                    lastDirection = 1;
+                    player.setVelocityX(250);
                     player.setFlipX(false);
+                    lastDirection = 1;
 
-                }
-                else {
+                } else {
 
                     player.setVelocityX(0);
-
                 }
             }
 
@@ -1676,10 +1810,14 @@
 
             if (!player.isTakingDamage) {
 
-                if (spaceKey.isDown && laserEnergy > 0) {
-
+                if (
+                    (
+                        spaceKey.isDown ||
+                        mobileLaser
+                    ) &&
+                    laserEnergy > 0
+                ) {
                     setPlayerState('shoot');
-
                 }
                 else if (!player.body.blocked.down) {
 
@@ -1711,18 +1849,22 @@
             // Прыжок
             if (
                 !player.isTakingDamage &&
-                cursors.up.isDown &&
+                (
+                    cursors.up.isDown ||
+                    mobileJump
+                ) &&
                 player.body.blocked.down
             ) {
-
                 player.setVelocityY(-600);
-
             }
 
             playerLaser.clear();
 
             if (
-                spaceKey.isDown &&
+                (
+                    spaceKey.isDown ||
+                    mobileLaser
+                ) &&
                 laserEnergy > 0
             ) {
 
