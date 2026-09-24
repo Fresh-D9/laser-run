@@ -517,6 +517,11 @@
                 'backgroundMid',
                 'assets/background_mid.png'
             );
+
+            this.load.image(
+                'backgroundFront',
+                'assets/background_front.png'
+            );
         }
         
         function create() {
@@ -580,6 +585,21 @@
 
             backgroundMid.setScrollFactor(0.40);
             backgroundMid.setDepth(-20);
+
+            // =====================================================
+            // ФОН — FRONT
+            // =====================================================
+
+            backgroundFront = this.add.tileSprite(
+                currentLevelData.width / 2,
+                360,
+                currentLevelData.width,
+                720,
+                'backgroundFront'
+            );
+
+            backgroundFront.setScrollFactor(0.80);
+            backgroundFront.setDepth(-10);
             
             // Заголовок
             this.add.text(
