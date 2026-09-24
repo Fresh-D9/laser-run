@@ -512,6 +512,11 @@
                 'backgroundFar',
                 'assets/background_far.png'
             );
+
+            this.load.image(
+                'backgroundMid',
+                'assets/background_mid.png'
+            );
         }
         
         function create() {
@@ -560,6 +565,21 @@
 
             backgroundFar.setScrollFactor(0.10);
             backgroundFar.setDepth(-30);
+
+            // =====================================================
+            // ФОН — MID
+            // =====================================================
+
+            backgroundMid = this.add.tileSprite(
+                currentLevelData.width / 2,
+                360,
+                currentLevelData.width,
+                720,
+                'backgroundMid'
+            );
+
+            backgroundMid.setScrollFactor(0.50);
+            backgroundMid.setDepth(-20);
             
             // Заголовок
             this.add.text(
