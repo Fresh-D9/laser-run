@@ -466,6 +466,11 @@
                 frameHeight: 256
             });
 
+            this.load.spritesheet('playerIdle', 'assets/player_idle.png', {
+                frameWidth: 256,
+                frameHeight: 256
+            });
+
             this.load.image(
                 'playerHit',
                 'assets/player-hit.png'
@@ -923,10 +928,11 @@
             // Анимация покоя
             this.anims.create({
                 key: 'player-idle',
-                frames: [
-                    { key: 'playerRun', frame: 0 }
-                ],
-                frameRate: 1,
+                frames: this.anims.generateFrameNumbers('playerIdle', {
+                    start: 0,
+                    end: 7
+                }),
+                frameRate: 4,
                 repeat: -1
             });
 
