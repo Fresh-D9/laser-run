@@ -173,6 +173,13 @@
             },
 
             scene: [
+
+                {
+                    key: 'MainMenu',
+                    preload: preloadMainMenu,
+                    create: createMainMenu
+                },
+
                 {
                     key: 'Level1',
                     preload: preload,
@@ -185,10 +192,65 @@
                     create: createLevel2,
                     update: updateLevel2
                 }
+
             ]
         };
 
         const game = new Phaser.Game(config);
+
+        // =====================================================
+        // ГЛАВНОЕ МЕНЮ
+        // =====================================================
+
+        function preloadMainMenu() {
+
+            this.load.video(
+                'mainMenuVideo',
+                'assets/main_menu_cut_scene.mp4',
+                false
+            );
+        }
+
+        function createMainMenu() {
+
+            const video = document.createElement('video');
+
+            video.src = 'assets/main_menu_cut_scene.mp4';
+
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
+
+            video.style.position = 'fixed';
+            video.style.left = '0';
+            video.style.top = '0';
+            video.style.width = '100vw';
+            video.style.height = '100vh';
+            video.style.objectFit = 'cover';
+            video.style.zIndex = '9999';
+
+            document.body.appendChild(video);
+
+            video.addEventListener('loadedmetadata', () => {
+                console.log('VIDEO FILE LOADED');
+                console.log('REAL VIDEO WIDTH:', video.videoWidth);
+                console.log('REAL VIDEO HEIGHT:', video.videoHeight);
+            });
+
+            video.addEventListener('error', (error) => {
+                console.error('VIDEO ERROR:', error);
+                console.error('VIDEO ELEMENT ERROR:', video.error);
+            });
+
+            video.play()
+                .then(() => {
+                    console.log('VIDEO PLAYING');
+                })
+                .catch(error => {
+                    console.error('VIDEO PLAY ERROR:', error);
+                });
+        }
 
         // =====================================================
         // ДАННЫЕ УРОВНЕЙ
