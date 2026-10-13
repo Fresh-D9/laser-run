@@ -171,6 +171,60 @@
                 display: block;
             }
         }
+
+        
+        #saveLoadScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 12;
+            display: none;
+            pointer-events: auto;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            background: rgba(0, 0, 0, 0.88);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #saveLoadScreen h2 {
+            font-size: 32px;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        #saveSlots,
+        #saveLoadActions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        #saveLoadScreen button {
+            min-width: 180px;
+            min-height: 54px;
+            padding: 12px 20px;
+            border: 2px solid #aaa;
+            border-radius: 4px;
+            background: #202020;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #saveLoadScreen button:hover {
+            background: #8b0000;
+            border-color: #ff3333;
+        }
+
+        #saveLoadScreen .saveSlot.selected {
+            background: #8b0000;
+            border-color: #ff3333;
+        }
+
     </style>
 </head>
 
@@ -185,6 +239,32 @@
             <button id="settingsButton">НАСТРОЙКИ</button>
             <button id="aboutButton">ПОДРОБНЕЕ ПРО РАЗУМ</button>
         </div>
+
+        
+        <div id="saveLoadScreen" style="display: none;">
+            <h2>СОХРАНЕНИЕ / ЗАГРУЗКА</h2>
+
+            <div id="saveSlots">
+                <button class="saveSlot" data-slot="1">
+                    СЛОТ 1
+                </button>
+
+                <button class="saveSlot" data-slot="2">
+                    СЛОТ 2
+                </button>
+
+                <button class="saveSlot" data-slot="3">
+                    СЛОТ 3
+                </button>
+            </div>
+
+            <div id="saveLoadActions">
+                <button id="saveGameButton">СОХРАНИТЬ</button>
+                <button id="loadGameButton">ЗАГРУЗИТЬ</button>
+                <button id="backToMenuButton">НАЗАД</button>
+            </div>
+        </div>
+
     </div>
     
     <div id="mobileControls">
@@ -353,8 +433,44 @@
                     menuVideo.remove();
                 }
 
-                this.scene.start('Level1');
+                // Если первый уровень на паузе — продолжаем его.
+                if (game.scene.isPaused('Level1')) {
+                    game.scene.resume('Level1');
+                } else {
+                    // Если игра ещё не запускалась — начинаем уровень.
+                    game.scene.start('Level1');
+                }
             });
+
+            
+            document.getElementById('saveLoadButton').addEventListener('click', () => {
+                document.getElementById('menuButtons').style.display = 'none';
+                document.getElementById('saveLoadScreen').style.display = 'flex';
+            });
+
+            
+            let selectedSaveSlot = 1;
+
+            document.querySelectorAll('.saveSlot').forEach((button) => {
+                button.addEventListener('click', () => {
+                    selectedSaveSlot = Number(button.dataset.slot);
+
+                    document.querySelectorAll('.saveSlot').forEach((slotButton) => {
+                        slotButton.classList.remove('selected');
+                    });
+
+                    button.classList.add('selected');
+
+                    console.log('Выбран слот:', selectedSaveSlot);
+                });
+            });
+
+            
+            document.getElementById('backToMenuButton').addEventListener('click', () => {
+                document.getElementById('saveLoadScreen').style.display = 'none';
+                document.getElementById('menuButtons').style.display = 'flex';
+            });
+
         }
 
         // =====================================================
@@ -2714,13 +2830,19 @@
         function returnToMainMenu() {
 
             // Останавливаем текущий уровень
-            game.scene.stop('Level1');
+            game.scene.pause('Level1');
 
             // Показываем главное меню
             const mainMenu = document.getElementById('mainMenu');
 
             if (mainMenu) {
                 mainMenu.style.display = 'flex';
+            }
+
+            const startButton = document.getElementById('startGameButton');
+
+            if (startButton) {
+                startButton.textContent = 'ПРОДОЛЖИТЬ ИГРУ';
             }
 
             // Если видео уже существует — удаляем его
