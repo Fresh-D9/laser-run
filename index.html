@@ -379,6 +379,26 @@
             );
         }
 
+        function continueGame() {
+            // Скрываем главное меню
+            document.getElementById('mainMenu').style.display = 'none';
+
+            // Удаляем видеофоновое изображение
+            const menuVideo = document.getElementById('mainMenuVideo');
+
+            if (menuVideo) {
+                menuVideo.pause();
+                menuVideo.remove();
+            }
+
+            // Возобновляем игру или запускаем её впервые
+            if (game.scene.isPaused('Level1')) {
+                game.scene.resume('Level1');
+            } else {
+                game.scene.start('Level1');
+            }
+        }
+        
         function createMainMenu() {
 
             const video = document.createElement('video');
@@ -423,23 +443,7 @@
                 });
 
             document.getElementById('startGameButton').addEventListener('click', () => {
-
-                document.getElementById('mainMenu').style.display = 'none';
-
-                const menuVideo = document.getElementById('mainMenuVideo');
-
-                if (menuVideo) {
-                    menuVideo.pause();
-                    menuVideo.remove();
-                }
-
-                // Если первый уровень на паузе — продолжаем его.
-                if (game.scene.isPaused('Level1')) {
-                    game.scene.resume('Level1');
-                } else {
-                    // Если игра ещё не запускалась — начинаем уровень.
-                    game.scene.start('Level1');
-                }
+                continueGame();
             });
 
             
@@ -469,6 +473,17 @@
             document.getElementById('backToMenuButton').addEventListener('click', () => {
                 document.getElementById('saveLoadScreen').style.display = 'none';
                 document.getElementById('menuButtons').style.display = 'flex';
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.code === 'Escape') {
+                    const mainMenu = document.getElementById('mainMenu');
+
+                    if (mainMenu && mainMenu.style.display !== 'none') {
+                        event.preventDefault();
+                        continueGame();
+                    }
+                }
             });
 
         }
@@ -635,6 +650,10 @@
         let currentLevelData;
         let player;
         let playerState = 'idle';
+
+        // Активная сцена и номер текущего уровня
+        let activeLevelScene = null;
+        let currentLevelKey = 'Level1';
 
         let mobileLeft = false;
         let mobileRight = false;
@@ -815,6 +834,9 @@
         
         function create() {
 
+            activeLevelScene = this;
+            currentLevelKey = 'Level1';
+            
             currentLevelData = LEVELS[1];
 
             startX = currentLevelData.player.x;
